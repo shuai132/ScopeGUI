@@ -10,3 +10,6 @@
 [submodule "modules/log"]
 	path = modules/log
 	url = https://github.com/shuai132/LOG.git
+[submodule "modules/PacketProcessor"]
+	path = modules/PacketProcessor
+	url = https://github.com/shuai132/PacketProcessor

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-project(app C CXX)
+project(ScopeGUI C CXX)
 
 # OpenGL
 find_package(OpenGL REQUIRED)
@@ -31,10 +31,19 @@ target_include_directories(imgui PUBLIC
         ${IMGUI_DIR} ${GL_DIR} ${IMGUI_DIR}/examples)
 link_libraries(imgui)
 
+# SmartSerial
+add_subdirectory(modules/SmartSerial)
+link_libraries(smartserial)
+
+# PacketProcessor
+add_subdirectory(modules/PacketProcessor)
+link_libraries(packetprocessor)
+target_compile_definitions(packetprocessor PRIVATE NDEBUG)
+
 # common
 set(CMAKE_CXX_STANDARD 11)
 add_compile_options(-Wall)
 include_directories(modules)
 
-file(GLOB sources *.cpp)
-add_executable(${PROJECT_NAME} ${sources})
+file(GLOB sources App/*.cpp App/*.c)
+add_executable(${PROJECT_NAME} ${sources} main.cpp)
