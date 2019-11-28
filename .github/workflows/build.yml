@@ -1,0 +1,30 @@
+name: build
+
+on: [push]
+
+jobs:
+  macOS:
+    runs-on: macOS-10.14
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: submodule
+        run: git submodule update --init --recursive
+
+      - name: cmake build
+        run: mkdir build && cd build && cmake .. && make
+
+  Linux:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: submodule
+        run: git submodule update --init --recursive
+
+      - name: cmake build
+        run: mkdir build && cd build && cmake .. && make
