@@ -15,20 +15,19 @@ App::App() : packetProcessor_(false) {
         assert(info.sampleNum <= SAMPLE_NUM_MAX);
 
         {
-            sampleFs_ = info.sampleFs;
-            sampleNum_ = info.sampleNum;
+            info_ = info;
 
-            LOGD("got message: sampleFs:%d, sampleNum:%d", sampleFs_, sampleNum_);
+            LOGD("got message: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
             scaleMinVol_ = 0;
             scaleMaxVol_ = info.volMaxmV;
 
-            for (uint32_t i = 0; i < sampleNum_; i++) {
+            for (uint32_t i = 0; i < info_.sampleNum; i++) {
                 points_[0][i] = (float)msg->sampleCh1[i];
             }
         }
 
         {
-            const uint16_t N = sampleNum_;
+            const uint16_t N = info_.sampleNum;
             fft_complex s[N];
             auto& signal = points_[0];
             for (int i = 0; i < N; i++) {
@@ -66,40 +65,75 @@ App::App() : packetProcessor_(false) {
     });
 }
 
-void App::update() {
-    if (ImGui::InputInt("Sample Number", reinterpret_cast<int*>(&sampleNum_))) {
-        if (sampleNum_ > SAMPLE_NUM_MAX) {
-            sampleNum_ = SAMPLE_NUM_MAX;
-        }
-        Cmd cmd;
-        cmd.type = Cmd::Type::SET_SAMPLE_NUM;
-        cmd.data = Cmd::Data{.sampleNum = sampleNum_};
-        packetProcessor_.packForeach((uint8_t*)&cmd, sizeof(cmd), [this](uint8_t* data, size_t size) {
-            smartSerial_.write(data, size);
-        });
-    }
 
-    if (ImGui::SliderInt("Sample Fs", reinterpret_cast<int*>(&sampleFs_), 0 , 50000)) {
-        Cmd cmd;
-        cmd.type = Cmd::Type::SET_SAMPLE_FS;
-        cmd.data = Cmd::Data{.sampleFs = sampleFs_};
-        packetProcessor_.packForeach((uint8_t*)&cmd, sizeof(cmd), [this](uint8_t* data, size_t size) {
-            smartSerial_.write(data, size);
-        });
-    }
+void App::onDraw() {
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::GetFrameHeight();
-    if (ImGui::InputText("serial port", port_, IM_ARRAYSIZE(port_))) {
+
+    if (ImGui::InputText("Serial Port", port_, IM_ARRAYSIZE(port_))) {
         LOGD("open port");
         smartSerial_.getSerial()->setPort(port_);
     }
 
+    drawCmd();
+
+    drawWave();
+}
+
+void App::drawCmd() {
+    int sampleFs = info_.sampleFs;
+    if (ImGui::SliderInt("Sample Fs", &sampleFs, 0 , 50000)) {
+        info_.sampleFs = sampleFs;
+        sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info_.sampleFs});
+    }
+
+    int sampleNum = info_.sampleNum;
+    if (ImGui::InputInt("Sample Number", &sampleNum)) {
+        info_.sampleNum = sampleNum;
+        if (sampleNum > SAMPLE_NUM_MAX) {
+            sampleNum = SAMPLE_NUM_MAX;
+        }
+        sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
+    }
+
+    int triggerMode = static_cast<int>(info_.triggerMode);
+    if (ImGui::SliderInt("Trigger Mode", &triggerMode, 0 , 2)) {
+        info_.triggerMode = static_cast<TriggerMode>(triggerMode);
+        sendCmd(Cmd::Type::SET_TRIGGER_MODE, {.triggerMode = info_.triggerMode});
+    }
+
+    int triggerSlope = static_cast<int>(info_.triggerSlope);
+    if (ImGui::SliderInt("Trigger Slope", &triggerSlope, 0 , 1)) {
+        info_.triggerSlope = static_cast<TriggerSlope>(triggerSlope);
+        sendCmd(Cmd::Type::SET_TRIGGER_SLOPE, {.triggerSlope = info_.triggerSlope});
+    }
+
+    int triggerLevel = info_.triggerLevel;
+    if (ImGui::SliderInt("Trigger Level", &triggerLevel, 0 , info_.volMaxmV)) {
+        info_.triggerLevel = static_cast<TriggerLevel>(triggerLevel);
+        sendCmd(Cmd::Type::SET_TRIGGER_LEVEL, {.triggerLevel = info_.triggerLevel});
+    }
+}
+
+void App::drawWave() {
     ImGui::SliderFloat("xsize", &xsize_, 0, 50000);
 
-    ImGui::Text("Sample Info: sampleFre=%u(%gkHz), sampleNum=%u", sampleFs_, sampleFs_ / 1000.f, sampleNum_);
+    ImGui::Text("Sample Info: sampleFre=%u(%gkHz), sampleNum=%u", info_.sampleFs, info_.sampleFs / 1000.f, info_.sampleNum);
 
-    ImGui::PlotLines("Vol/mV", points_[0], sampleNum_, 0, "vol", scaleMinVol_, scaleMaxVol_, ImVec2(xsize_, 280));
+    ImGui::PlotLines("Vol/mV", points_[0], info_.sampleNum, 0, "vol", scaleMinVol_, scaleMaxVol_, ImVec2(xsize_, ysize_));
     char overlay_text[128];
     sprintf(overlay_text, "FFT Basic Signal: fre=%.3f, amp=%.3f, pha=%.3f", fre_fft_, amp_fft_, pha_fft_);
-    ImGui::PlotHistogram("FFT", points_[1], sampleNum_ / 2 + 1, 0, overlay_text, scaleMinFFT_, scaleMaxFFT_, ImVec2(xsize_, 280));
+    ImGui::PlotHistogram("FFT", points_[1], info_.sampleNum / 2 + 1, 0, overlay_text, scaleMinFFT_, scaleMaxFFT_, ImVec2(xsize_, ysize_));
+}
+
+void App::sendCmd(Cmd cmd) {
+    packetProcessor_.packForeach((uint8_t*)&cmd, sizeof(cmd), [this](uint8_t* data, size_t size) {
+        smartSerial_.write(data, size);
+    });
+}
+
+void App::sendCmd(Cmd::Type type, Cmd::Data data) {
+    Cmd cmd;
+    cmd.type = type;
+    cmd.data = data;
+    sendCmd(cmd);
 }

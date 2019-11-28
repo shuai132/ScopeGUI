@@ -95,7 +95,7 @@ int main(int, char**)
         if (show_demo_window)
             ImGui::ShowDemoWindow(&show_demo_window);
 
-        app.update();
+        app.onDraw();
 
         // Rendering
         ImGui::Render();

@@ -4,12 +4,22 @@
 #include "PacketProcessor.h"
 #include "Portable.h"
 
+using namespace scope;
+
 class App {
 public:
     App();
 
 public:
-    void update();
+    void onDraw();
+
+private:
+    void drawCmd();
+    void drawWave();
+
+private:
+    void sendCmd(Cmd cmd);
+    void sendCmd(Cmd::Type type, Cmd::Data data);
 
 private:
     SmartSerial smartSerial_;
@@ -18,11 +28,11 @@ private:
     float points_[2][SAMPLE_NUM_MAX]{};
 
     float xsize_ = 1000;
+    float ysize_ = 240;
 
     PacketProcessor packetProcessor_;
 
-    uint32_t sampleFs_ = 0;
-    uint32_t sampleNum_ = 0;
+    SampleInfo info_ = {};
 
     float scaleMinVol_ = 0;
     float scaleMaxVol_ = 0;
