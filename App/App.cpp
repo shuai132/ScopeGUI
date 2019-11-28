@@ -10,14 +10,16 @@ App::App() : packetProcessor_(false) {
     smartSerial_.getSerial()->setPort(port_);
 
     packetProcessor_.setOnPacketHandle([this](const uint8_t* data, size_t size) {
+        if (isHold_) return;
+
         auto msg = (Message*)data;
         auto info = msg->sampleInfo;
         assert(info.sampleNum <= SAMPLE_NUM_MAX);
 
-        {
-            info_ = info;
+        info_ = info;
 
-            LOGD("got message: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
+        {
+            //LOGD("got message: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
             scaleMinVol_ = 0;
             scaleMaxVol_ = info.volMaxmV;
 
@@ -54,7 +56,7 @@ App::App() : packetProcessor_(false) {
             amp_fft_ = A[k];
             pha_fft_ = fft_cal_pha(s[k]);
             fre_fft_ = fft_cal_fre(info.sampleFs, N, k);
-            LOGD("k=%d, max=%f, %f, %f, %f", k, max, amp_fft_, pha_fft_, fre_fft_);
+            //LOGD("k=%d, max=%f, %f, %f, %f", k, max, amp_fft_, pha_fft_, fre_fft_);
 
             scaleMinFFT_ = 0;
             scaleMaxFFT_ = A[0];
@@ -63,66 +65,146 @@ App::App() : packetProcessor_(false) {
     smartSerial_.setOnReadHandle([this](const uint8_t* data, size_t size) {
         packetProcessor_.feed(data, size);
     });
+
+    // todo: smartSerial_.onOpen
+    // sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
 }
 
 
 void App::onDraw() {
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    using namespace ImGui;
 
-    if (ImGui::InputText("Serial Port", port_, IM_ARRAYSIZE(port_))) {
-        LOGD("open port");
+    PushItemWidth(itemWidth_);
+
+    Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / GetIO().Framerate, GetIO().Framerate);
+
+    SetNextItemWidth(500);
+    if (InputText("Serial Port", port_, IM_ARRAYSIZE(port_))) {
         smartSerial_.getSerial()->setPort(port_);
     }
 
     drawCmd();
 
     drawWave();
+
+    PopItemWidth();
 }
 
 void App::drawCmd() {
-    int sampleFs = info_.sampleFs;
-    if (ImGui::SliderInt("Sample Fs", &sampleFs, 0 , 50000)) {
-        info_.sampleFs = sampleFs;
-        sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info_.sampleFs});
-    }
+    using namespace ImGui;
 
-    int sampleNum = info_.sampleNum;
-    if (ImGui::InputInt("Sample Number", &sampleNum)) {
-        info_.sampleNum = sampleNum;
-        if (sampleNum > SAMPLE_NUM_MAX) {
-            sampleNum = SAMPLE_NUM_MAX;
+    {
+        float widthSampleNum = 200;
+        float widthSampleFs = itemWidth_ - widthSampleNum - 80;
+
+        SetNextItemWidth(widthSampleNum);
+
+        int sampleNum = info_.sampleNum;
+        if (InputInt("Sample Number", &sampleNum)) {
+            if (sampleNum > SAMPLE_NUM_MAX) {
+                sampleNum = SAMPLE_NUM_MAX;
+            }
+            else if (sampleNum < 2) {
+                sampleNum = 2;
+            }
+            info_.sampleNum = sampleNum;
+            sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
         }
-        sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
+
+        SameLine();
+        SetNextItemWidth(widthSampleFs);
+        int sampleFs = info_.sampleFs;
+        if (SliderInt("Sample Fs", &sampleFs, 0 , 50000)) {
+            info_.sampleFs = sampleFs;
+            sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info_.sampleFs});
+        }
     }
 
-    int triggerMode = static_cast<int>(info_.triggerMode);
-    if (ImGui::SliderInt("Trigger Mode", &triggerMode, 0 , 2)) {
-        info_.triggerMode = static_cast<TriggerMode>(triggerMode);
-        sendCmd(Cmd::Type::SET_TRIGGER_MODE, {.triggerMode = info_.triggerMode});
+    // trigger mode
+    {
+        Text("Trigger Mode:");
+        SameLine();
+        int triggerMode = static_cast<int>(info_.triggerMode);
+        if (RadioButton("ALWAYS", &triggerMode, static_cast<int>(TriggerMode::ALWAYS))) {
+            info_.triggerMode = static_cast<TriggerMode>(triggerMode);
+            sendCmd(Cmd::Type::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info_.triggerMode});
+        }
+        SameLine();
+        if (RadioButton("NORMAL", &triggerMode, static_cast<int>(TriggerMode::NORMAL))) {
+            info_.triggerMode = static_cast<TriggerMode>(triggerMode);
+            sendCmd(Cmd::Type::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info_.triggerMode});
+        }
+        SameLine();
+        if (RadioButton("SOFTWARE", &triggerMode, static_cast<int>(TriggerMode::SOFTWARE))) {
+            info_.triggerMode = static_cast<TriggerMode>(triggerMode);
+            sendCmd(Cmd::Type::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info_.triggerMode});
+        }
     }
 
-    int triggerSlope = static_cast<int>(info_.triggerSlope);
-    if (ImGui::SliderInt("Trigger Slope", &triggerSlope, 0 , 1)) {
-        info_.triggerSlope = static_cast<TriggerSlope>(triggerSlope);
-        sendCmd(Cmd::Type::SET_TRIGGER_SLOPE, {.triggerSlope = info_.triggerSlope});
-    }
+    // trigger slope
+    {
+        Text("Trigger Slope:");
+        SameLine();
+        int triggerSlope = static_cast<int>(info_.triggerSlope);
+        if (RadioButton("Up", &triggerSlope, static_cast<int>(TriggerSlope::UP))) {
+            info_.triggerSlope = static_cast<TriggerSlope>(triggerSlope);
+            sendCmd(Cmd::Type::SET_TRIGGER_SLOPE, Cmd::Data{.triggerSlope = info_.triggerSlope});
+        }
+        SameLine();
+        if (RadioButton("Down", &triggerSlope, static_cast<int>(TriggerSlope::DOWN))) {
+            info_.triggerSlope = static_cast<TriggerSlope>(triggerSlope);
+            sendCmd(Cmd::Type::SET_TRIGGER_SLOPE, Cmd::Data{.triggerSlope = info_.triggerSlope});
+        }
 
-    int triggerLevel = info_.triggerLevel;
-    if (ImGui::SliderInt("Trigger Level", &triggerLevel, 0 , info_.volMaxmV)) {
-        info_.triggerLevel = static_cast<TriggerLevel>(triggerLevel);
-        sendCmd(Cmd::Type::SET_TRIGGER_LEVEL, {.triggerLevel = info_.triggerLevel});
+        {
+            SameLine();
+            if (Button("Force Trigger")) {
+                sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
+            }
+
+            SameLine();
+            SetNextItemWidth(1000);
+            Checkbox("Hold Wave", &isHold_);
+        }
     }
 }
 
 void App::drawWave() {
-    ImGui::SliderFloat("xsize", &xsize_, 0, 50000);
+    using namespace ImGui;
+    const float sliderXSize = 14;
 
-    ImGui::Text("Sample Info: sampleFre=%u(%gkHz), sampleNum=%u", info_.sampleFs, info_.sampleFs / 1000.f, info_.sampleNum);
+    NewLine();
+    Text("Sample Info: sampleFre=%u(%gkHz), sampleNum=%u", info_.sampleFs, info_.sampleFs / 1000.f, info_.sampleNum);
 
-    ImGui::PlotLines("Vol/mV", points_[0], info_.sampleNum, 0, "vol", scaleMinVol_, scaleMaxVol_, ImVec2(xsize_, ysize_));
-    char overlay_text[128];
-    sprintf(overlay_text, "FFT Basic Signal: fre=%.3f, amp=%.3f, pha=%.3f", fre_fft_, amp_fft_, pha_fft_);
-    ImGui::PlotHistogram("FFT", points_[1], info_.sampleNum / 2 + 1, 0, overlay_text, scaleMinFFT_, scaleMaxFFT_, ImVec2(xsize_, ysize_));
+    SetNextItemWidth(itemWidth_ + sliderXSize + 8);
+    SliderFloat("scale", &xsize_, itemWidth_, itemWidthScaleMax_);
+
+    // Vol plot
+    {
+        int triggerLevel = info_.triggerLevel;
+        if (VSliderInt("##Trigger Level", ImVec2(sliderXSize,ysize_), &triggerLevel, 0, info_.volMaxmV)) {
+            info_.triggerLevel = triggerLevel;
+            sendCmd(Cmd::Type::SET_TRIGGER_LEVEL, Cmd::Data{.triggerLevel = info_.triggerLevel});
+        }
+
+        SameLine();
+
+        PlotLines("AMP", points_[0], info_.sampleNum, 0, "Vol/mV", scaleMinVol_, scaleMaxVol_, ImVec2(xsize_, ysize_));
+    }
+
+    // FFT plot
+    {
+        static int fftNumber = info_.sampleNum;
+        if (VSliderInt("##FFT Number", ImVec2(sliderXSize,ysize_), &fftNumber, info_.sampleNum, SAMPLE_NUM_MAX * 10)) {
+            // todo
+        }
+
+        SameLine();
+
+        char overlay_text[128];
+        sprintf(overlay_text, "FFT Basic Signal: fre=%.3f, amp=%.3f, pha=%.3f", fre_fft_, amp_fft_, pha_fft_);
+        PlotHistogram("FFT", points_[1], info_.sampleNum / 2 + 1, 0, overlay_text, scaleMinFFT_, scaleMaxFFT_, ImVec2(0, ysize_));
+    }
 }
 
 void App::sendCmd(Cmd cmd) {

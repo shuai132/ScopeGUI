@@ -19,7 +19,7 @@ private:
 
 private:
     void sendCmd(Cmd cmd);
-    void sendCmd(Cmd::Type type, Cmd::Data data);
+    void sendCmd(Cmd::Type type, Cmd::Data data = {});
 
 private:
     SmartSerial smartSerial_;
@@ -27,12 +27,16 @@ private:
 
     float points_[2][SAMPLE_NUM_MAX]{};
 
-    float xsize_ = 1000;
-    float ysize_ = 240;
+    const float itemWidth_ = 1160;
+    const float itemWidthScaleMax_ = itemWidth_ * 10;
+    float xsize_ = 0;
+    float ysize_ = 255;
 
     PacketProcessor packetProcessor_;
 
     SampleInfo info_ = {};
+
+    bool isHold_ = false;
 
     float scaleMinVol_ = 0;
     float scaleMaxVol_ = 0;
