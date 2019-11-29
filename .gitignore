@@ -1,2 +1,6 @@
+# clion
 /.idea/
 /cmake-build-*/
+
+# qt
+/CMakeLists.txt.user

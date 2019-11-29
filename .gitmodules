@@ -10,3 +10,6 @@
 [submodule "modules/PacketProcessor"]
 	path = modules/PacketProcessor
 	url = https://github.com/shuai132/PacketProcessor
+[submodule "third_party/glfw"]
+	path = third_party/glfw
+	url = https://github.com/glfw/glfw.git
