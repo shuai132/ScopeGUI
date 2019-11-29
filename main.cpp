@@ -34,9 +34,12 @@ int main(int, char**)
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
         return 1;
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "ScopeGUI", NULL, NULL);
-    if (window == NULL)
+    GLFWwindow* window = glfwCreateWindow(App::MainWindowWidth, App::MainWindowHeight, App::MainWindowTitle, nullptr, nullptr);
+    if (window == nullptr)
         return 1;
+
+    glfwSetWindowSizeLimits(window, App::MainWindowWidth, App::MainWindowHeight, App::MainWindowWidth, App::MainWindowHeight);
+
     glfwMakeContextCurrent(window);
     glfwSwapInterval(1); // Enable vsync
 
