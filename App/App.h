@@ -3,6 +3,7 @@
 #include "SmartSerial.h"
 #include "PacketProcessor.h"
 #include "Portable.h"
+#include "fft.h"
 
 using namespace scope;
 
@@ -26,6 +27,8 @@ private:
 
 private:
     static uint32_t nextPow2(uint32_t v);
+    void onMessage(const Message& message);
+    void calFFT();
 
 public:
     static const int MainWindowWidth  = 1280;
@@ -43,7 +46,8 @@ private:
     bool isOpen_ = false;
 
     // Wave
-    float points_[2][SAMPLE_NUM_MAX]{};
+    std::vector<float> pointsAmp_;
+    std::vector<float> pointsFFT_;
 
     // GUI
     uint32_t windowFlags_ = 0;
@@ -54,14 +58,17 @@ private:
     float waveWidth_ = 0;
     float waveHeight_ = 255;
 
-    float scaleMinVol_ = 0;
-    float scaleMaxVol_ = 0;
-    float scaleMinFFT_ = 0;
-    float scaleMaxFFT_ = 0;
+    float volMin_ = 0;
+    float volMax_ = 0;
+    float fftMin_ = 0;
+    float fftMax_ = 0;
+
+    float fftAmpMax_ = 0;
 
     // FFT Result
-    int fft_num_ = 0;
-    float amp_fft_ = 0;
-    float pha_fft_ = 0;
-    float fre_fft_ = 0;
+    std::vector<fft_complex> fftResult_;
+    int   fftNum_ = 0;
+    float fftAmp_ = 0;
+    float fftPha_ = 0;
+    float fftFre_ = 0;
 };

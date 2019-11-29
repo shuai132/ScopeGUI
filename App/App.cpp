@@ -3,70 +3,16 @@
 #include "App.h"
 #include "imgui.h"
 #include "Portable.h"
-#include "fft.h"
 #include "log/log.h"
 
-App::App() : packetProcessor_(false) {
+App::App() : packetProcessor_(false),
+    pointsAmp_(SAMPLE_NUM_MAX),
+    pointsFFT_(SAMPLE_NUM_MAX / 2),
+    fftResult_(SAMPLE_NUM_MAX) {
     smartSerial_.getSerial()->setPort(port_);
 
     packetProcessor_.setOnPacketHandle([this](const uint8_t* data, size_t size) {
-        if (isHold_) return;
-
-        auto msg = (Message*)data;
-        auto info = msg->sampleInfo;
-
-        if (info.sampleNum > SAMPLE_NUM_MAX) {
-            LOGE();
-        }
-
-        info_ = info;
-
-        {
-            //LOGD("got message: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
-            scaleMinVol_ = 0;
-            scaleMaxVol_ = info.volMaxmV;
-
-            for (uint32_t i = 0; i < info_.sampleNum; i++) {
-                points_[0][i] = (float)msg->sampleCh1[i];
-            }
-        }
-
-        {
-            fft_num_ = nextPow2(info_.sampleNum);
-            const uint16_t N = fft_num_;
-
-            // FFTs
-            fft_complex s[N];
-            auto& signal = points_[0];
-            for (int i = 0; i < N; i++) {
-                s[i].real = i < info_.sampleNum ? signal[i] : 0;
-                s[i].imag = 0;
-            }
-
-            // 对s做N点FFT，结果仍保存在s中
-            fft_cal_fft(s, N);
-
-            // 找幅值最大处:k
-            float max = 0;
-            auto& A = points_[1];
-            int k = 0;
-            for (int i = 0; i < N / 2; i++) {
-                A[i] = fft_cal_amp(s[i], N);
-                if (i != 0 && A[i] > max) {
-                    max = A[i];
-                    k = i;
-                }
-            }
-
-            // 计算k处幅值、相位和频率
-            amp_fft_ = A[k];
-            pha_fft_ = fft_cal_pha(s[k]);
-            fre_fft_ = fft_cal_fre(info.sampleFs, N, k);
-            //LOGD("k=%d, max=%f, %f, %f, %f", k, max, amp_fft_, pha_fft_, fre_fft_);
-
-            scaleMinFFT_ = 0;
-            scaleMaxFFT_ = A[0];
-        }
+        onMessage(*(Message*)data);
     });
 
     smartSerial_.setOnReadHandle([this](const uint8_t* data, size_t size) {
@@ -238,22 +184,21 @@ void App::drawWave() {
 
         SameLine();
 
-        PlotLines("AMP", points_[0], info_.sampleNum, 0, "Vol/mV", scaleMinVol_, scaleMaxVol_, ImVec2(waveWidth_, waveHeight_));
+        PlotLines("AMP", pointsAmp_.data(), info_.sampleNum, 0, "Vol/mV", volMin_, volMax_, ImVec2(waveWidth_, waveHeight_));
     }
 
     // FFT plot
     {
-        static int value;
-        if (VSliderInt("##FFT Number", ImVec2(vSliderWidth, waveHeight_), &value, 0, SAMPLE_NUM_MAX)) {
-            // todo
+        if (VSliderFloat("##FFT Amp Level", ImVec2(vSliderWidth, waveHeight_), &fftAmpMax_, 0, fftMax_)) {
+            calFFT();
         }
 
         SameLine();
 
-        const auto& fftNumber = fft_num_;
+        const auto& fftNumber = fftNum_;
         char overlay_text[128];
-        sprintf(overlay_text, "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", fftNumber, fre_fft_, amp_fft_, pha_fft_);
-        PlotHistogram("FFT", points_[1], fftNumber / 2, 0, overlay_text, scaleMinFFT_, scaleMaxFFT_, ImVec2(waveWidth_, waveHeight_));
+        sprintf(overlay_text, "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", fftNumber, fftFre_, fftAmp_, fftPha_);
+        PlotHistogram("FFT", pointsFFT_.data(), fftNumber / 2, 0, overlay_text, fftMin_, fftMax_, ImVec2(waveWidth_, waveHeight_));
     }
 }
 
@@ -279,6 +224,64 @@ uint32_t App::nextPow2(uint32_t v) {
     v |= v >> 16u;
     v++;
     return v;
+}
+
+void App::calFFT() {
+    // FFT算法需要N为2的整次幂
+    fftNum_ = nextPow2(info_.sampleNum);
+    const uint16_t N = fftNum_;
+
+    // FFT
+    auto* s = fftResult_.data();
+    for (int i = 0; i < N; i++) {
+        s[i].real = i < info_.sampleNum ? pointsAmp_[i] : 0;
+        s[i].imag = 0;
+    }
+
+    // 对s做N点FFT 结果仍保存在s中
+    fft_cal_fft(s, N);
+
+    // 找幅值最大处:k
+    float max = 0;
+    auto& A = pointsFFT_;
+    int k = 0;
+    if (fftAmpMax_ == 0) fftAmpMax_ = fftMax_;
+    for (int i = 0; i < N / 2; i++) {
+        A[i] = fft_cal_amp(s[i], N);
+        if (i != 0 && A[i] < fftAmpMax_ && A[i] > max) {
+            max = A[i];
+            k = i;
+        }
+    }
+
+    // 计算k处幅值、相位和频率
+    fftAmp_ = A[k];
+    fftPha_ = fft_cal_pha(s[k]);
+    fftFre_ = fft_cal_fre(info_.sampleFs, N, k);
+    //LOGD("k=%d, max=%f, %f, %f, %f", k, max, amp_fft_, pha_fft_, fre_fft_);
+
+    fftMin_ = 0;
+    fftMax_ = A[0];
+}
+
+void App::onMessage(const Message& message) {
+    if (isHold_) return;
+
+    info_ = message.sampleInfo;
+    //LOGD("got message: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
+
+    if (info_.sampleNum > SAMPLE_NUM_MAX) {
+        FATAL();
+    }
+
+    volMin_ = 0;
+    volMax_ = info_.volMaxmV;
+
+    for (uint32_t i = 0; i < info_.sampleNum; i++) {
+        pointsAmp_[i] = (float)message.sampleCh1[i];
+    }
+
+    calFFT();
 }
 
 const char* App::MainWindowTitle = "ScopeGUI";
