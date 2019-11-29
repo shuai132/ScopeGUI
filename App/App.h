@@ -24,6 +24,9 @@ private:
     void sendCmd(Cmd cmd);
     void sendCmd(Cmd::Type type, Cmd::Data data = {});
 
+private:
+    static uint32_t nextPow2(uint32_t v);
+
 public:
     static const int MainWindowWidth  = 1280;
     static const int MainWindowHeight = 720;
@@ -57,6 +60,7 @@ private:
     float scaleMaxFFT_ = 0;
 
     // FFT Result
+    int fft_num_ = 0;
     float amp_fft_ = 0;
     float pha_fft_ = 0;
     float fre_fft_ = 0;

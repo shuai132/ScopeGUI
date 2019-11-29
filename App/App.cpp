@@ -32,11 +32,14 @@ App::App() : packetProcessor_(false) {
         }
 
         {
-            const uint16_t N = info_.sampleNum;
+            fft_num_ = nextPow2(info_.sampleNum);
+            const uint16_t N = fft_num_;
+
+            // FFTs
             fft_complex s[N];
             auto& signal = points_[0];
             for (int i = 0; i < N; i++) {
-                s[i].real = signal[i];
+                s[i].real = i < info_.sampleNum ? signal[i] : 0;
                 s[i].imag = 0;
             }
 
@@ -240,16 +243,17 @@ void App::drawWave() {
 
     // FFT plot
     {
-        static int fftNumber = info_.sampleNum;
-        if (VSliderInt("##FFT Number", ImVec2(vSliderWidth, waveHeight_), &fftNumber, info_.sampleNum, SAMPLE_NUM_MAX * 10)) {
+        static int value;
+        if (VSliderInt("##FFT Number", ImVec2(vSliderWidth, waveHeight_), &value, 0, SAMPLE_NUM_MAX)) {
             // todo
         }
 
         SameLine();
 
+        const auto& fftNumber = fft_num_;
         char overlay_text[128];
-        sprintf(overlay_text, "FFT Analysis: fre=%.3fHz, amp=%.3fmV, pha=%.3f°", fre_fft_, amp_fft_, pha_fft_);
-        PlotHistogram("FFT", points_[1], info_.sampleNum / 2 + 1, 0, overlay_text, scaleMinFFT_, scaleMaxFFT_, ImVec2(waveWidth_, waveHeight_));
+        sprintf(overlay_text, "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", fftNumber, fre_fft_, amp_fft_, pha_fft_);
+        PlotHistogram("FFT", points_[1], fftNumber / 2, 0, overlay_text, scaleMinFFT_, scaleMaxFFT_, ImVec2(waveWidth_, waveHeight_));
     }
 }
 
@@ -264,6 +268,17 @@ void App::sendCmd(Cmd::Type type, Cmd::Data data) {
     cmd.type = type;
     cmd.data = data;
     sendCmd(cmd);
+}
+
+uint32_t App::nextPow2(uint32_t v) {
+    v--;
+    v |= v >> 1u;
+    v |= v >> 2u;
+    v |= v >> 4u;
+    v |= v >> 8u;
+    v |= v >> 16u;
+    v++;
+    return v;
 }
 
 const char* App::MainWindowTitle = "ScopeGUI";
