@@ -5,6 +5,15 @@
 #include "Portable.h"
 #include "log/log.h"
 
+template <typename T>
+static void setLimit(T& v, T min, T max) {
+    if (v < min) {
+        v = min;
+    } else if (v > max) {
+        v = max;
+    }
+}
+
 App::App() : packetProcessor_(false) {
     smartSerial_.getSerial()->setPort(port_);
 
@@ -76,6 +85,7 @@ void App::drawCmd() {
         SetNextItemWidth(widthSampleNum);
         int sampleNum = info_.sampleNum;
         if (InputInt("Sample Number", &sampleNum)) {
+            setLimit<int>(sampleNum, 0, info_.sampleNumMax);
             info_.sampleNum = sampleNum;
             sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
         }
@@ -92,6 +102,7 @@ void App::drawCmd() {
         int sampleFs = info_.sampleFs;
         SetNextItemWidth(widthSampleNum);
         if (InputInt("Sample Fs    ", &sampleFs)) {
+            setLimit<int>(sampleFs, info_.fsMinSps, info_.fsMaxSps);
             info_.sampleFs = sampleFs;
             sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info_.sampleFs});
         }
@@ -198,6 +209,10 @@ void App::drawWave() {
 }
 
 void App::sendCmd(Cmd cmd) {
+    if (not isOpen_) {
+        LOGD("not open, cmd ignored!");
+        return;
+    }
     packetProcessor_.packForeach((uint8_t*)&cmd, sizeof(cmd), [this](uint8_t* data, size_t size) {
         smartSerial_.write(data, size);
     });
