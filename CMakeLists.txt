@@ -20,6 +20,8 @@ set(CMAKE_CXX_STANDARD 11)
 add_compile_options(-Wall)
 include_directories(modules)
 
+add_definitions(-DSCOPE_IS_GUI)
+
 file(GLOB sources App/*.cpp App/*.c)
 add_executable(${PROJECT_NAME} ${sources} main.cpp)
 

@@ -5,10 +5,7 @@
 #include "Portable.h"
 #include "log/log.h"
 
-App::App() : packetProcessor_(false),
-    pointsAmp_(SAMPLE_NUM_MAX),
-    pointsFFT_(SAMPLE_NUM_MAX / 2),
-    fftResult_(SAMPLE_NUM_MAX) {
+App::App() : packetProcessor_(false) {
     smartSerial_.getSerial()->setPort(port_);
 
     packetProcessor_.setOnPacketHandle([this](const uint8_t* data, size_t size) {
@@ -75,39 +72,37 @@ void App::drawCmd() {
     {
         float widthSampleNum = 125;
 
+        // Sample Number
         SetNextItemWidth(widthSampleNum);
         int sampleNum = info_.sampleNum;
         if (InputInt("Sample Number", &sampleNum)) {
-            if (sampleNum > SAMPLE_NUM_MAX) {
-                sampleNum = SAMPLE_NUM_MAX;
-            }
-            else if (sampleNum < 2) {
-                sampleNum = 2;
-            }
             info_.sampleNum = sampleNum;
             sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
         }
-
         SameLine();
-        int sampleFs = info_.sampleFs;
-
-        SetNextItemWidth(widthSampleNum);
-        if (InputInt("Sample Fs", &sampleFs)) {
-            info_.sampleFs = sampleFs;
-            sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info_.sampleFs});
-        }
-
-        if (sampleFs >= 1000) {
-            SameLine();
-            Text("(%gk)", (float)sampleFs / 1000);
-        }
-
         SetNextItemWidth(500);
-        if (SliderInt("##Sample Fs Slider", &sampleFs, 0 , 50000)) {
+        if (SliderInt("##Sample Num Slider", &sampleNum, 0, info_.sampleNumMax, "Fn = %d")) {
+            info_.sampleNum = sampleNum;
+            sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
+        }
+        SameLine();
+        Text("= %gk", (float)sampleNum / 1000);
+
+        /** Sample Fs **/
+        int sampleFs = info_.sampleFs;
+        SetNextItemWidth(widthSampleNum);
+        if (InputInt("Sample Fs    ", &sampleFs)) {
             info_.sampleFs = sampleFs;
             sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info_.sampleFs});
         }
-
+        SameLine();
+        SetNextItemWidth(500);
+        if (SliderInt("##Sample Fs Slider", &sampleFs, info_.fsMinSps, info_.fsMaxSps, "Fs = %d")) {
+            info_.sampleFs = sampleFs;
+            sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info_.sampleFs});
+        }
+        SameLine();
+        Text("= %gk", (float)sampleFs / 1000);
     }
 
     // trigger mode
@@ -177,7 +172,7 @@ void App::drawWave() {
     // Vol plot
     {
         int triggerLevel = info_.triggerLevel;
-        if (VSliderInt("##Trigger Level", ImVec2(vSliderWidth, waveHeight_), &triggerLevel, 0, info_.volMaxmV)) {
+        if (VSliderInt("##Trigger Level", ImVec2(vSliderWidth, waveHeight_), &triggerLevel, info_.volMinmV, info_.volMaxmV)) {
             info_.triggerLevel = triggerLevel;
             sendCmd(Cmd::Type::SET_TRIGGER_LEVEL, Cmd::Data{.triggerLevel = info_.triggerLevel});
         }
@@ -229,6 +224,9 @@ uint32_t App::nextPow2(uint32_t v) {
 void App::calFFT() {
     // FFT算法需要N为2的整次幂
     fftNum_ = nextPow2(info_.sampleNum);
+    pointsFFT_.reserve(fftNum_ / 2);
+    fftResult_.reserve(fftNum_);
+
     const uint16_t N = fftNum_;
 
     // FFT
@@ -268,13 +266,11 @@ void App::onMessage(const Message& message) {
     if (isHold_) return;
 
     info_ = message.sampleInfo;
-    //LOGD("got message: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
+    //LOGD("got messa11ge: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
 
-    if (info_.sampleNum > SAMPLE_NUM_MAX) {
-        FATAL();
-    }
+    pointsAmp_.reserve(info_.sampleNum);
 
-    volMin_ = 0;
+    volMin_ = info_.volMinmV;
     volMax_ = info_.volMaxmV;
 
     for (uint32_t i = 0; i < info_.sampleNum; i++) {
