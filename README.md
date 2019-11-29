@@ -12,22 +12,24 @@ Powered by [Dear ImGUI](https://github.com/ocornut/imgui) and [GLFW](https://git
 * Fast: 60Fps
 * FFT频谱分析
 
-## Install Dependencies
+## Dependencies
 
-* macOS
-```bash
-brew install glfw3
-brew install sdl2
-```
+* C++11
+* OpenGL
+
+### Install Dependencies
+
+* macOS  
+Nothing todo
 
 * Ubuntu
 ```bash
 sudo apt-get update
-sudo apt-get install -y libglfw3-dev libsdl2-dev
+sudo apt-get install -y libsdl2-dev
 ```
 
-* Windows(TODO)  
-MinGW
+* Windows(MinGW)  
+Nothing todo
 
 ## Build
 

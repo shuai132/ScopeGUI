@@ -13,11 +13,6 @@ jobs:
       - name: submodule
         run: git submodule update --init --recursive
 
-      - name: Install Dependencies
-        run: |
-          brew install glfw3
-          brew install sdl2
-
       - name: cmake build
         run: mkdir build && cd build && cmake .. && make ScopeGUI
 
@@ -34,7 +29,7 @@ jobs:
       - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libglfw3-dev libsdl2-dev
+          sudo apt-get install -y libsdl2-dev
 
       - name: cmake build
         run: mkdir build && cd build && cmake .. && make ScopeGUI
