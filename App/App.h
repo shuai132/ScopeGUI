@@ -44,9 +44,7 @@ private:
     SmartSerial smartSerial_;
     const char* PORT_VID = "1234";
     const char* PORT_PID = "5740";
-
-    char port_[128] = "";
-
+    int portItemCurrent_ = 0;
     bool isOpen_ = false;
 
     // Wave

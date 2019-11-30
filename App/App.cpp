@@ -64,13 +64,29 @@ void App::drawSerial() {
     using namespace ImGui;
 
     SetNextItemWidth(500);
-    const auto& portName = smartSerial_.getSerial()->getPort();
-    memcpy(port_, portName.c_str(), portName.size());
-    if (InputText("Serial Port", port_, IM_ARRAYSIZE(port_))) {
+
+    static std::vector<serial::PortInfo> ports;
+    ports = serial::list_ports();
+    const int MAX_NAME_LEN = 128;
+    char items[ports.size()][MAX_NAME_LEN];
+
+    auto portNameCurrent = smartSerial_.getSerial()->getPort();
+    if (!portNameCurrent.empty()) {
+        portItemCurrent_ = 0;
+        for (const auto& info : ports) {
+            if (info.port == portNameCurrent) break;
+            portItemCurrent_++;
+        }
+    }
+
+    if (ImGui::Combo("Serial Port", &portItemCurrent_, [](void* data, int idx, const char** out_str) {
+        *out_str = ports[idx].port.c_str();
+        return true;
+    }, items, IM_ARRAYSIZE(items))) {
         if (smartSerial_.getSerial()->isOpen()) {
             smartSerial_.getSerial()->close();
         }
-        smartSerial_.setPortName(port_);
+        smartSerial_.setPortName(ports[portItemCurrent_].port);
     }
 
     SameLine();
