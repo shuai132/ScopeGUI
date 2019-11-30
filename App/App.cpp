@@ -15,7 +15,7 @@ static void setLimit(T& v, T min, T max) {
 }
 
 App::App() : packetProcessor_(false) {
-    smartSerial_.getSerial()->setPort(port_);
+    smartSerial_.setVidPid(PORT_VID, PORT_PID);
 
     packetProcessor_.setOnPacketHandle([this](const uint8_t* data, size_t size) {
         onMessage(*(Message*)data);
@@ -64,11 +64,13 @@ void App::drawSerial() {
     using namespace ImGui;
 
     SetNextItemWidth(500);
+    const auto& portName = smartSerial_.getSerial()->getPort();
+    memcpy(port_, portName.c_str(), portName.size());
     if (InputText("Serial Port", port_, IM_ARRAYSIZE(port_))) {
         if (smartSerial_.getSerial()->isOpen()) {
             smartSerial_.getSerial()->close();
         }
-        smartSerial_.getSerial()->setPort(port_);
+        smartSerial_.setPortName(port_);
     }
 
     SameLine();

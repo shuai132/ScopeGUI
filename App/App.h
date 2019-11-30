@@ -42,7 +42,11 @@ private:
 
     // Serial Port
     SmartSerial smartSerial_;
-    char port_[128] = "/dev/tty.usbmodem8D8842A649551";
+    const char* PORT_VID = "1234";
+    const char* PORT_PID = "5740";
+
+    char port_[128] = "";
+
     bool isOpen_ = false;
 
     // Wave
