@@ -39,6 +39,8 @@ void App::onDraw() {
     using namespace ImGui;
 
     ImGui::Begin("MainWindow", nullptr, windowFlags_);
+    ImGui::SetWindowPos({0, 0});
+    ImGui::SetWindowSize({MainWindowWidth, MainWindowHeight});
     PushItemWidth(itemWidth_);
 
     Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / GetIO().Framerate, GetIO().Framerate);
@@ -299,7 +301,7 @@ void App::onMessage(const Message& message) {
     if (isHold_) return;
 
     info_ = message.sampleInfo;
-    //LOGD("got messa11ge: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
+    //LOGD("got message: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
 
     pointsAmp_.reserve(info_.sampleNum);
 

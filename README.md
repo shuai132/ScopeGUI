@@ -4,13 +4,14 @@
 
 Oscilloscope GUI for [ScopeMCU](https://github.com/shuai132/ScopeMCU)
 
-Powered by [Dear ImGUI](https://github.com/ocornut/imgui) and [GLFW](https://github.com/glfw)
+Powered by [Dear ImGui](https://github.com/ocornut/imgui) and [GLFW](https://github.com/glfw)
 
 ## Features
 
 * 全平台支持: macOS、Linux、Windows，也可移植到Android/iOS。
 * Fast: 60Fps
 * FFT频谱分析
+* 自动识别设备
 
 ## Dependencies
 
