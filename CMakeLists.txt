@@ -51,10 +51,8 @@ file(GLOB sources App/*.cpp App/*.c)
 add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${sources} main.cpp)
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
-    if(CMAKE_SYSTEM_NAME MATCHES "Linux" OR MINGW)
+    if(MINGW)
         set(CMAKE_EXE_LINKER_FLAGS "-static -s")
-    else()
-        set(CMAKE_EXE_LINKER_FLAGS "-s")
     endif()
 endif()
 
