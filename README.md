@@ -6,6 +6,10 @@ Oscilloscope GUI for [ScopeMCU](https://github.com/shuai132/ScopeMCU)
 
 Powered by [Dear ImGui](https://github.com/ocornut/imgui) and [GLFW](https://github.com/glfw)
 
+**[Screenshots](https://github.com/shuai132/ScopeGUI/issues/1)**
+
+**[Archives](https://github.com/shuai132/ScopeGUI/issues/2)**
+
 ## Features
 
 * 全平台支持: macOS、Linux、Windows，也可移植到Android/iOS。
