@@ -47,13 +47,14 @@ include_directories(modules)
 
 add_definitions(-DSCOPE_IS_GUI)
 
-file(GLOB sources App/*.cpp App/*.c)
-add_executable(${PROJECT_NAME} WIN32 MACOSX_BUNDLE ${sources} main.cpp)
-
 if(CMAKE_BUILD_TYPE MATCHES "Release")
     if(MINGW)
         set(CMAKE_EXE_LINKER_FLAGS "-static -s")
     endif()
+    set(BUILD_AS_APP WIN32 MACOSX_BUNDLE)
 endif()
+
+file(GLOB sources App/*.cpp App/*.c)
+add_executable(${PROJECT_NAME} ${BUILD_AS_APP} ${sources} main.cpp)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/output/${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_BUILD_TYPE})
