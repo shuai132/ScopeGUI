@@ -1,36 +1,11 @@
-#include <cmath>
-
 #include "App.h"
 #include "imgui.h"
 #include "Portable.h"
-#include "log/log.h"
-
-template <typename T>
-static void setLimit(T& v, T min, T max) {
-    if (v < min) {
-        v = min;
-    } else if (v > max) {
-        v = max;
-    }
-}
+#include "Utils.h"
+#include "log.h"
 
 App::App() : packetProcessor_(false) {
-    smartSerial_.setVidPid(PORT_VID, PORT_PID);
-
-    packetProcessor_.setOnPacketHandle([this](const uint8_t* data, size_t size) {
-        onMessage(*(Message*)data);
-    });
-
-    smartSerial_.setOnReadHandle([this](const uint8_t* data, size_t size) {
-        packetProcessor_.feed(data, size);
-    });
-
-    smartSerial_.setOnOpenHandle([this](bool isOpen) {
-        isOpen_ = isOpen;
-        if (isOpen_) {
-            sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
-        }
-    });
+    initSerial();
 
     initGUI();
 }
@@ -55,6 +30,24 @@ void App::onDraw() {
     ImGui::End();
 }
 
+void App::initSerial() {
+    smartSerial_.setOnOpenHandle([this](bool isOpen) {
+        if (smartSerial_.isOpen()) {
+            sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
+        }
+    });
+
+    smartSerial_.setVidPid(PORT_VID, PORT_PID);
+
+    smartSerial_.setOnReadHandle([this](const uint8_t* data, size_t size) {
+        packetProcessor_.feed(data, size);
+    });
+
+    packetProcessor_.setOnPacketHandle([this](const uint8_t* data, size_t size) {
+        onMessage(*(Message*)data);
+    });
+}
+
 void App::initGUI() {
     windowFlags_ |= ImGuiWindowFlags_NoMove;
     windowFlags_ |= ImGuiWindowFlags_NoResize;
@@ -72,7 +65,7 @@ void App::drawSerial() {
     const int MAX_NAME_LEN = 128;
     char items[ports.size()][MAX_NAME_LEN];
 
-    auto portNameCurrent = smartSerial_.getSerial()->getPort();
+    auto portNameCurrent = smartSerial_.getPortName();
     if (!portNameCurrent.empty()) {
         portItemCurrent_ = 0;
         for (const auto& info : ports) {
@@ -85,14 +78,11 @@ void App::drawSerial() {
         *out_str = ports[idx].port.c_str();
         return true;
     }, items, IM_ARRAYSIZE(items))) {
-        if (smartSerial_.getSerial()->isOpen()) {
-            smartSerial_.getSerial()->close();
-        }
         smartSerial_.setPortName(ports[portItemCurrent_].port);
     }
 
     SameLine();
-    Text("%s", isOpen_ ? "(Opened!)" : "(Closed!)");
+    Text("%s", smartSerial_.isOpen() ? "(Opened!)" : "(Closed!)");
 }
 
 void App::drawCmd() {
@@ -105,7 +95,7 @@ void App::drawCmd() {
         SetNextItemWidth(widthSampleNum);
         int sampleNum = info_.sampleNum;
         if (InputInt("Sample Number", &sampleNum)) {
-            setLimit<int>(sampleNum, 0, info_.sampleNumMax);
+            utils::setLimit<int>(sampleNum, 0, info_.sampleNumMax);
             info_.sampleNum = sampleNum;
             sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
         }
@@ -122,7 +112,7 @@ void App::drawCmd() {
         int sampleFs = info_.sampleFs;
         SetNextItemWidth(widthSampleNum);
         if (InputInt("Sample Fs    ", &sampleFs)) {
-            setLimit<int>(sampleFs, info_.fsMinSps, info_.fsMaxSps);
+            utils::setLimit<int>(sampleFs, info_.fsMinSps, info_.fsMaxSps);
             info_.sampleFs = sampleFs;
             sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info_.sampleFs});
         }
@@ -229,7 +219,7 @@ void App::drawWave() {
 }
 
 void App::sendCmd(Cmd cmd) {
-    if (not isOpen_) {
+    if (not smartSerial_.isOpen()) {
         LOGD("not open, cmd ignored!");
         return;
     }

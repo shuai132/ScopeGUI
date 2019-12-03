@@ -7,13 +7,12 @@ find_package(OpenGL REQUIRED)
 link_libraries(${OPENGL_LIBRARIES})
 
 # GLFW
-set(GLFW_DIR third_party/glfw)
 option(GLFW_BUILD_EXAMPLES "Build the GLFW example programs" OFF)
 option(GLFW_BUILD_TESTS "Build the GLFW test programs" OFF)
 option(GLFW_BUILD_DOCS "Build the GLFW documentation" OFF)
 option(GLFW_INSTALL "Generate installation target" OFF)
 option(GLFW_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
-add_subdirectory(${GLFW_DIR} binary_dir EXCLUDE_FROM_ALL)
+add_subdirectory(third_party/glfw)
 link_libraries(glfw)
 
 # ImGui
@@ -40,10 +39,12 @@ add_subdirectory(modules/PacketProcessor)
 link_libraries(packetprocessor)
 target_compile_definitions(packetprocessor PRIVATE NDEBUG)
 
+# log
+include_directories(modules/log)
+
 # common
 set(CMAKE_CXX_STANDARD 11)
 add_compile_options(-Wall)
-include_directories(modules)
 
 add_definitions(-DSCOPE_IS_GUI)
 

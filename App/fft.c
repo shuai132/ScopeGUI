@@ -3,7 +3,7 @@
 
 #define pi  M_PI
 
-static fft_complex cexp(fft_complex a)
+static fft_complex cp_cexp(fft_complex a)
 {
     fft_complex z;
     z.real = (float)(exp(a.real) * cos(a.imag));
@@ -70,7 +70,7 @@ void fft_cal_fft(fft_complex* x, int n)
             for (i = m; i < n; i = i + 2 * l)       /*完成当前级相同W因子的所有蝶形运算*/
             {
                 z.imag = m * pisign / l;
-                ce = cexp(z);
+                ce = cp_cexp(z);
                 t.real = x[i + l].real * ce.real - x[i + l].imag * ce.imag;
                 t.imag = x[i + l].real * ce.imag + x[i + l].imag * ce.real;
                 x[i + l].real = x[i].real - t.real; /*原位运算*/

@@ -15,6 +15,7 @@ public:
     void onDraw();
 
 private:
+    void initSerial();
     void initGUI();
 
     void drawSerial();
@@ -45,7 +46,6 @@ private:
     const char* PORT_VID = "1234";
     const char* PORT_PID = "5740";
     int portItemCurrent_ = 0;
-    bool isOpen_ = false;
 
     // Wave
     std::vector<float> pointsAmp_;
