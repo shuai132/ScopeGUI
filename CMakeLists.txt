@@ -37,7 +37,7 @@ link_libraries(smartserial)
 # PacketProcessor
 add_subdirectory(modules/PacketProcessor)
 link_libraries(packetprocessor)
-target_compile_definitions(packetprocessor PRIVATE NDEBUG)
+target_compile_definitions(packetprocessor PRIVATE LOG_NDEBUG)
 
 # log
 include_directories(modules/log)
