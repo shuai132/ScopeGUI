@@ -33,3 +33,22 @@ jobs:
 
       - name: cmake build
         run: mkdir build && cd build && cmake .. && make ScopeGUI
+
+  Windows:
+    runs-on: windows-2019
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: submodule
+        run: git submodule update --init --recursive
+
+      - name: cmake build
+        shell: powershell
+        run: |
+          $env:path=$env:path.Replace("C:\Program Files\Git", "HIDE_GIT")
+          mkdir build
+          cd build
+          cmake .. -G "MinGW Makefiles"
+          mingw32-make ScopeGUI
