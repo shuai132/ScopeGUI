@@ -64,11 +64,11 @@ private:
     float fftMin_ = 0;
     float fftMax_ = 0;
 
-    float fftAmpMax_ = 0;
+    float fftCursor_ = 0;
 
     // FFT Result
     std::vector<fft_complex> fftResult_;
-    int   fftNum_ = 0;
+    typeof(SampleInfo::sampleNum) fftNum_ = 0;
     float fftAmp_ = 0;
     float fftPha_ = 0;
     float fftFre_ = 0;

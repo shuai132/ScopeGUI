@@ -203,7 +203,7 @@ void App::drawWave() {
 
     // FFT plot
     {
-        if (VSliderFloat("##FFT Amp Level", ImVec2(vSliderWidth, waveHeight_), &fftAmpMax_, 0, fftMax_)) {
+        if (VSliderFloat("##FFT Amp Level", ImVec2(vSliderWidth, waveHeight_), &fftCursor_, 0, fftMax_)) {
             calFFT();
         }
 
@@ -239,26 +239,31 @@ void App::calFFT() {
     pointsFFT_.reserve(fftNum_ / 2);
     fftResult_.reserve(fftNum_);
 
-    const uint16_t N = fftNum_;
+    const auto& Fs = info_.sampleFs;    // 采样频率
+    const auto& Fn = info_.sampleNum;   // 采样点数
+    const auto& N  = fftNum_;           // FFT点数
 
     // FFT
-    auto* s = fftResult_.data();
-    for (int i = 0; i < N; i++) {
-        s[i].real = i < info_.sampleNum ? pointsAmp_[i] : 0;
+    auto s = fftResult_.data();
+    FOR (i, N) {
+        s[i].real = i < Fn ? pointsAmp_[i] : 0; // 自动补零
         s[i].imag = 0;
     }
 
     // 对s做N点FFT 结果仍保存在s中
     fft_cal_fft(s, N);
 
-    // 找幅值最大处:k
+    // 计算幅值并找出除直流分量外最大处:k
     float max = 0;
     auto& A = pointsFFT_;
-    int k = 0;
-    if (fftAmpMax_ == 0) fftAmpMax_ = fftMax_;
-    for (int i = 0; i < N / 2; i++) {
-        A[i] = fft_cal_amp(s[i], N);
-        if (i != 0 && A[i] < fftAmpMax_ && A[i] > max) {
+    std::remove_const<typeof(N)>::type k = 0;
+    if (fftCursor_ == 0) {
+        // 初始化为直流分量
+        fftCursor_ = (float)fft_cal_amp(s[0], Fn);;
+    }
+    FOR (i, N / 2) {
+        A[i] = (float)fft_cal_amp(s[i], Fn);
+        if (i != 0 && A[i] < fftCursor_ && A[i] > max) {
             max = A[i];
             k = i;
         }
@@ -266,9 +271,9 @@ void App::calFFT() {
 
     // 计算k处幅值、相位和频率
     fftAmp_ = A[k];
-    fftPha_ = fft_cal_pha(s[k]);
-    fftFre_ = fft_cal_fre(info_.sampleFs, N, k);
-    //LOGD("k=%d, max=%f, %f, %f, %f", k, max, amp_fft_, pha_fft_, fre_fft_);
+    fftPha_ = (float)fft_cal_pha(s[k]);
+    fftFre_ = (float)fft_cal_fre(Fs, N, k);
+    //LOGD("k=%d, max=%f, %f, %f, %f", k, max, fftAmp_, fftPha_, fftFre_);
 
     fftMin_ = 0;
     fftMax_ = A[0];
@@ -285,7 +290,7 @@ void App::onMessage(const Message& message) {
     volMin_ = info_.volMinmV;
     volMax_ = info_.volMaxmV;
 
-    for (uint32_t i = 0; i < info_.sampleNum; i++) {
+    FOR (i, info_.sampleNum) {
         pointsAmp_[i] = (float)message.sampleCh1[i];
     }
 

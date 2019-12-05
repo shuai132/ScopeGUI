@@ -86,17 +86,17 @@ void fft_cal_fft(fft_complex* x, int n)
 /**
  * 由FFT结果计算幅值
  */
-float fft_cal_amp(fft_complex x, int n)
+double fft_cal_amp(fft_complex x, int n)
 {
-    return ((float)sqrt(x.real * x.real + x.imag * x.imag) * 2 / n);
+    return (sqrt(x.real * x.real + x.imag * x.imag) * 2 / n);
 }
 
 /**
  * 由FFT结果计算相位
  */
-float fft_cal_pha(fft_complex x)
+double fft_cal_pha(fft_complex x)
 {
-    float pha = (double)atan(x.imag / x.real) * 180 / pi + 90;
+    double pha = atan(x.imag / x.real) * 180 / pi + 90;
     if(x.real < 0) {
         pha += 180;
     }
@@ -106,8 +106,8 @@ float fft_cal_pha(fft_complex x)
 /**
  * 计算FFT结果中对应点的频率
  */
-float fft_cal_fre(int fs, int n, int k)
+double fft_cal_fre(int Fs, int N, int n)
 {
-    float fre = ((float)fs / n) * k;
+    double fre = ((double)Fs / N) * n;
     return fre;
 }
