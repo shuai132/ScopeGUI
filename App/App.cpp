@@ -32,9 +32,7 @@ void App::onDraw() {
 
 void App::initSerial() {
     smartSerial_.setOnOpenHandle([this](bool isOpen) {
-        if (smartSerial_.isOpen()) {
-            sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
-        }
+        if (isOpen) sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
     });
 
     smartSerial_.setVidPid(PORT_VID, PORT_PID);
@@ -235,20 +233,9 @@ void App::sendCmd(Cmd::Type type, Cmd::Data data) {
     sendCmd(cmd);
 }
 
-uint32_t App::nextPow2(uint32_t v) {
-    v--;
-    v |= v >> 1u;
-    v |= v >> 2u;
-    v |= v >> 4u;
-    v |= v >> 8u;
-    v |= v >> 16u;
-    v++;
-    return v;
-}
-
 void App::calFFT() {
     // FFT算法需要N为2的整次幂
-    fftNum_ = nextPow2(info_.sampleNum);
+    fftNum_ = utils::nextPow2(info_.sampleNum);
     pointsFFT_.reserve(fftNum_ / 2);
     fftResult_.reserve(fftNum_);
 

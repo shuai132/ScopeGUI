@@ -55,7 +55,8 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
     set(BUILD_AS_APP WIN32 MACOSX_BUNDLE)
 endif()
 
-file(GLOB sources App/*.cpp App/*.c)
-add_executable(${PROJECT_NAME} ${BUILD_AS_APP} ${sources} main.cpp)
+# app
+add_subdirectory(App)
+link_libraries(App)
 
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/output/${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_BUILD_TYPE})
+add_executable(${PROJECT_NAME} ${BUILD_AS_APP} main.cpp)

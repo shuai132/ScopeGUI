@@ -27,7 +27,6 @@ private:
     void sendCmd(Cmd::Type type, Cmd::Data data = {});
 
 private:
-    static uint32_t nextPow2(uint32_t v);
     void onMessage(const Message& message);
     void calFFT();
 
