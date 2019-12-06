@@ -46,8 +46,6 @@ include_directories(modules/log)
 set(CMAKE_CXX_STANDARD 11)
 add_compile_options(-Wall)
 
-add_definitions(-DSCOPE_IS_GUI)
-
 if(CMAKE_BUILD_TYPE MATCHES "Release")
     if(MINGW)
         set(CMAKE_EXE_LINKER_FLAGS "-static -s")

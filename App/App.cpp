@@ -89,19 +89,19 @@ void App::drawCmd() {
     {
         float widthSampleNum = 125;
 
-        // Sample Number
+        /** Sample Number **/
         SetNextItemWidth(widthSampleNum);
-        int sampleNum = info_.sampleNum;
+        int sampleNum = info_.sampleSn;
         if (InputInt("Sample Number", &sampleNum)) {
             utils::setLimit<int>(sampleNum, 0, info_.sampleNumMax);
-            info_.sampleNum = sampleNum;
-            sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
+            info_.sampleSn = sampleNum;
+            sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleSn});
         }
         SameLine();
         SetNextItemWidth(500);
         if (SliderInt("##Sample Num Slider", &sampleNum, 0, info_.sampleNumMax, "Fn = %d")) {
-            info_.sampleNum = sampleNum;
-            sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleNum});
+            info_.sampleSn = sampleNum;
+            sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info_.sampleSn});
         }
         SameLine();
         Text("= %gk", (float)sampleNum / 1000);
@@ -178,7 +178,7 @@ void App::drawWave() {
     const float vSliderWidth = 14;
 
     NewLine();
-    Text("Sample Info from MCU: Fs=%u(%gkHz), SampleNum=%u", info_.sampleFs, info_.sampleFs / 1000.f, info_.sampleNum);
+    Text("Sample Info from MCU: Fs=%u(%gkHz), SampleNum=%u", info_.sampleFs, info_.sampleFs / 1000.f, info_.sampleSn);
 
     // Scale Slider
     {
@@ -198,7 +198,7 @@ void App::drawWave() {
 
         SameLine();
 
-        PlotLines("AMP", pointsAmp_.data(), info_.sampleNum, 0, "Vol/mV", volMin_, volMax_, ImVec2(waveWidth_, waveHeight_));
+        PlotLines("AMP", pointsAmp_.data(), info_.sampleSn, 0, "Vol/mV", volMin_, volMax_, ImVec2(waveWidth_, waveHeight_));
     }
 
     // FFT plot
@@ -235,12 +235,12 @@ void App::sendCmd(Cmd::Type type, Cmd::Data data) {
 
 void App::calFFT() {
     // FFT算法需要N为2的整次幂
-    fftNum_ = utils::nextPow2(info_.sampleNum);
+    fftNum_ = utils::nextPow2(info_.sampleSn);
     pointsFFT_.reserve(fftNum_ / 2);
     fftResult_.reserve(fftNum_);
 
     const auto& Fs = info_.sampleFs;    // 采样频率
-    const auto& Fn = info_.sampleNum;   // 采样点数
+    const auto& Fn = info_.sampleSn;    // 采样点数
     const auto& N  = fftNum_;           // FFT点数
 
     // FFT
@@ -283,14 +283,14 @@ void App::onMessage(const Message& message) {
     if (isHold_) return;
 
     info_ = message.sampleInfo;
-    //LOGD("got message: sampleFs:%d, sampleNum:%d", info_.sampleFs, info_.sampleNum);
+    //LOGD("got message: sampleFs:%d, sampleSn:%d", info_.sampleFs, info_.sampleSn);
 
-    pointsAmp_.reserve(info_.sampleNum);
+    pointsAmp_.reserve(info_.sampleSn);
 
     volMin_ = info_.volMinmV;
     volMax_ = info_.volMaxmV;
 
-    FOR (i, info_.sampleNum) {
+    FOR (i, info_.sampleSn) {
         pointsAmp_[i] = (float)message.sampleCh1[i];
     }
 

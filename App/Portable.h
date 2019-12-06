@@ -4,11 +4,13 @@
 
 namespace scope {
 
-#if SCOPE_IS_MCU
-const uint16_t SAMPLE_NUM_MAX = 1024 * 2;
-#endif
+const auto ChannelNum = 1;
 
-#pragma pack(push, 1)
+using SampleFs_t = uint32_t;
+using SampleSn_t = uint16_t;
+using SampleVo_t = uint16_t;
+
+#pragma pack(push, 4)
 
 enum class TriggerMode : uint8_t {
     ALWAYS = 0,
@@ -21,36 +23,34 @@ enum class TriggerSlope : uint8_t {
     DOWN,
 };
 
-using TriggerLevel = uint16_t;
+using TriggerLevel = SampleVo_t;
 
 struct SampleInfo {
     // device info
-    uint16_t volMinmV;
-    uint16_t volMaxmV;
-    uint32_t fsMinSps;
-    uint32_t fsMaxSps;
-    uint32_t sampleNumMax
-#if SCOPE_IS_MCU
-    = SAMPLE_NUM_MAX;
-#else
-    ;
-#endif
+    SampleVo_t volMinmV;
+    SampleVo_t volMaxmV;
+    SampleFs_t fsMinSps;
+    SampleFs_t fsMaxSps;
+    SampleSn_t sampleNumMax;
 
     // sample info
-    uint16_t sampleNum;
-    uint32_t sampleFs;
+    SampleSn_t sampleSn;
+    SampleFs_t sampleFs;
     TriggerMode triggerMode;
     TriggerSlope triggerSlope;
     TriggerLevel triggerLevel;
 };
 
+/// Only used for transmission!
 struct Message  {
-    SampleInfo sampleInfo{};
-#if SCOPE_IS_MCU
-    uint16_t sampleCh1[SAMPLE_NUM_MAX]{};
-#elif SCOPE_IS_GUI
-    uint16_t sampleCh1[0];
-#endif
+    SampleInfo sampleInfo;
+    SampleVo_t sampleCh1[0];
+
+    static SampleSn_t CalcBytes(SampleSn_t sn) {
+        return sizeof(SampleInfo) + sizeof(SampleSn_t) * ChannelNum * sn;
+    }
+
+    Message() = delete;
 };
 
 struct Cmd  {
@@ -59,14 +59,14 @@ struct Cmd  {
         SET_SAMPLE_FS,      // data: fs(Hz)
         SET_SAMPLE_NUM,     // data: num(point)
         SET_TRIGGER_MODE,   // data: mode(TriggerMode)
-        SET_TRIGGER_SLOPE,  // data: mode(TriggerLevel)
-        SET_TRIGGER_LEVEL,  // data: mode(mV)
+        SET_TRIGGER_SLOPE,  // data: slope(TriggerSlope)
+        SET_TRIGGER_LEVEL,  // data: level(TriggerLevel)
         SOFTWARE_TRIGGER,   // no data
     };
 
     union Data {
-        uint32_t sampleFs;
-        uint32_t sampleNum;
+        SampleFs_t sampleFs;
+        SampleSn_t sampleNum;
         TriggerMode triggerMode;
         TriggerSlope triggerSlope;
         TriggerLevel triggerLevel;

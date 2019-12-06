@@ -68,7 +68,7 @@ private:
 
     // FFT Result
     std::vector<fft_complex> fftResult_;
-    typeof(SampleInfo::sampleNum) fftNum_ = 0;
+    typeof(SampleInfo::sampleSn) fftNum_ = 0;
     float fftAmp_ = 0;
     float fftPha_ = 0;
     float fftFre_ = 0;
