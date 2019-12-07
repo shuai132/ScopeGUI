@@ -1,5 +1,6 @@
 #include "App.h"
 #include "imgui.h"
+#include "widgets.h"
 #include "Portable.h"
 #include "Utils.h"
 #include "log.h"
@@ -226,7 +227,9 @@ void App::drawWave() {
         const auto& fftNumber = fftNum_;
         char overlay_text[128];
         sprintf(overlay_text, "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", fftNumber, fftFre_, fftAmp_, fftPha_);
-        PlotHistogram("FFT", pointsFFT_.data(), fftNumber / 2, 0, overlay_text, fftMin_, fftMax_, ImVec2(waveWidth_, waveHeight_));
+        PlotFFT("FFT", [](float* data, size_t i) {
+            return data[i];
+        }, pointsFFT_.data(), fftNumber / 2, 0, overlay_text, fftMin_, fftMax_, ImVec2(waveWidth_, waveHeight_));
     }
 }
 
