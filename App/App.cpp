@@ -32,7 +32,11 @@ void App::onDraw() {
 
 void App::initSerial() {
     smartSerial_.setOnOpenHandle([this](bool isOpen) {
-        if (isOpen) sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
+        if (isOpen) {
+            sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
+        } else {
+            smartSerial_.setPortName("");
+        }
     });
 
     smartSerial_.setVidPid(PORT_VID, PORT_PID);
@@ -198,7 +202,17 @@ void App::drawWave() {
 
         SameLine();
 
-        PlotLines("AMP", pointsAmp_.data(), info_.sampleSn, 0, "Vol/mV", volMin_, volMax_, ImVec2(waveWidth_, waveHeight_));
+        char text[30]{}; {
+            auto sn = info_.sampleSn;
+            if (sn != 0){
+                double ave = 0;
+                FOR(i, sn) {
+                    ave += pointsAmp_[i];
+                }
+                snprintf(text, sizeof(text), "Vol/mV: ave=%dmV", (int)ave / sn);
+            }
+        }
+        PlotLines("AMP", pointsAmp_.data(), info_.sampleSn, 0, text, volMin_, volMax_, ImVec2(waveWidth_, waveHeight_));
     }
 
     // FFT plot
