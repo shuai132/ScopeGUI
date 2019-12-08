@@ -1,7 +1,7 @@
+#include <algorithm>
 #include "App.h"
 #include "imgui.h"
 #include "widgets.h"
-#include "Portable.h"
 #include "Utils.h"
 #include "log.h"
 
@@ -227,6 +227,33 @@ void App::drawWave() {
         const auto& Fn = fftNum_;
         char overlay_text[128];
         sprintf(overlay_text, "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", Fn, fftFre_, fftAmp_, fftPha_);
+
+        std::vector<size_t> shouldShowAxisIdx;
+        {
+            size_t xCount = fftNum_ / 2;
+            auto findMaxPos = [&](size_t pos) {
+                float maxP = pos;
+                float maxV = pointsFFT_[pos];
+                for (size_t i = pos; i < xCount; i++) {
+                    auto v = pointsFFT_[i];
+                    if (maxV < v) {
+                        maxV = v;
+                        maxP = i;
+                    }
+                }
+                return maxP;
+            };
+            shouldShowAxisIdx.push_back(0);
+            shouldShowAxisIdx.push_back(fftK_);
+            size_t showCountMax = 20;
+            for (size_t i = fftK_ + 1; i < xCount && shouldShowAxisIdx.size() < showCountMax; i++) {
+                i = findMaxPos(i);
+                // 跳过过于密集的点
+                if (i - shouldShowAxisIdx.back() < xCount / showCountMax) continue;
+                shouldShowAxisIdx.push_back(i);
+            }
+        }
+
         PlotFFT("FFT"
                 , [&](size_t i) {
                     return pointsFFT_[i];
@@ -239,13 +266,16 @@ void App::drawWave() {
                     if (fre < 1000) {
                         snprintf(v, sizeof(v), "Fre=%gHz, Amp=%gmV", fre, fftAmp_);
                     } else {
-                        snprintf(v, sizeof(v), "fre=%gkHz, amp=%gmV", fre / 1000, fftAmp_);
+                        snprintf(v, sizeof(v), "Fre=%gkHz, Amp=%gmV", fre / 1000, fftAmp_);
                     }
                     return v;
                 }
                 , [&](size_t i) {
-                    auto showNum = Fn / 2 / 20; // fft只显示了一半要除2 显示20个点
-                    if (showNum != 0 && i % showNum != 0) return (char*)nullptr;
+                    if (i == 0) return (char*)nullptr;
+
+                    if (not std::binary_search(shouldShowAxisIdx.cbegin(), shouldShowAxisIdx.cend(), i)) {
+                        return (char*)nullptr;
+                    }
 
                     static char v[30];
                     auto fre = fft_cal_fre(info_.sampleFs, fftNum_, i);

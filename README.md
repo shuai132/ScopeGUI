@@ -6,7 +6,9 @@ Oscilloscope GUI for [ScopeMCU](https://github.com/shuai132/ScopeMCU)
 
 Powered by [Dear ImGui](https://github.com/ocornut/imgui) and [GLFW](https://github.com/glfw)
 
-[截图和二进制文件](https://github.com/shuai132/ScopeGUI/wiki)
+[截图说明见wiki](https://github.com/shuai132/ScopeGUI/wiki)
+
+[二进制releases](https://github.com/shuai132/ScopeGUI/releases)
 
 ## Features
 
