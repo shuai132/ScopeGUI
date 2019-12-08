@@ -5,7 +5,16 @@
 
 namespace ImGui {
 
-void PlotFFT(const char* label, const std::function<float(float* data, size_t i)>& values_getter, float* data, int values_count, int values_offset, const char* overlay_text, float scale_min, float scale_max, ImVec2 frame_size)
+void PlotFFT(const char* label
+        , const std::function<float(size_t i)>& values_getter
+        , const std::function<const char*(size_t i, bool force)>& get_value_label
+        , const std::function<const char*(size_t i)>& get_x_axis_text
+        , int values_count
+        , int values_offset
+        , const char* overlay_text
+        , float scale_min
+        , float scale_max
+        , ImVec2 frame_size)
 {
     ImGuiWindow* window = GetCurrentWindow();
     if (window->SkipItems)
@@ -36,7 +45,7 @@ void PlotFFT(const char* label, const std::function<float(float* data, size_t i)
         float v_max = -FLT_MAX;
         for (int i = 0; i < values_count; i++)
         {
-            const float v = values_getter(data, i);
+            const float v = values_getter(i);
             if (v != v) // Ignore NaN values
                 continue;
             v_min = ImMin(v_min, v);
@@ -64,15 +73,14 @@ void PlotFFT(const char* label, const std::function<float(float* data, size_t i)
             const int v_idx = (int)(t * item_count);
             IM_ASSERT(v_idx >= 0 && v_idx < values_count);
 
-            const float v0 = values_getter(data, (v_idx + values_offset) % values_count);
-            SetTooltip("%d: %8.4g", v_idx, v0);
+            SetTooltip("%s", get_value_label(v_idx, true));
             v_hovered = v_idx;
         }
 
         const float t_step = 1.0f / (float)res_w;
         const float inv_scale = (scale_min == scale_max) ? 0.0f : (1.0f / (scale_max - scale_min));
 
-        float v0 = values_getter(data, (0 + values_offset) % values_count);
+        float v0 = values_getter((0 + values_offset) % values_count);
         float t0 = 0.0f;
         ImVec2 tp0 = ImVec2( t0, 1.0f - ImSaturate((v0 - scale_min) * inv_scale) );                       // Point in the normalized space of our target rectangle
         float histogram_zero_line_t = (scale_min * scale_max < 0.0f) ? (-scale_min * inv_scale) : (scale_min < 0.0f ? 0.0f : 1.0f);   // Where does the zero line stands
@@ -85,7 +93,7 @@ void PlotFFT(const char* label, const std::function<float(float* data, size_t i)
             const float t1 = t0 + t_step;
             const int v1_idx = (int)(t0 * item_count + 0.5f);
             IM_ASSERT(v1_idx >= 0 && v1_idx < values_count);
-            const float v1 = values_getter(data, (v1_idx + values_offset + 1) % values_count);
+            const float v1 = values_getter((v1_idx + values_offset + 1) % values_count);
             const ImVec2 tp1 = ImVec2( t1, 1.0f - ImSaturate((v1 - scale_min) * inv_scale) );
 
             // NB: Draw calls are merged together by the DrawList system. Still, we should render our batch are lower level to save a bit of CPU.
@@ -95,6 +103,23 @@ void PlotFFT(const char* label, const std::function<float(float* data, size_t i)
             if (pos1.x >= pos0.x + 2.0f)
                 pos1.x -= 1.0f;
             window->DrawList->AddRectFilled(pos0, pos1, v_hovered == v1_idx ? col_hovered : col_base);
+
+            {   // fft 数值标记
+                auto valueLabel = get_value_label(n, false);
+                if (valueLabel) {
+                    auto fontSize = window->DrawList->_Data->FontSize;
+                    window->DrawList->AddText(pos0 + ImVec2{0, -fontSize}, col_base, valueLabel);
+                }
+            }
+
+            {   // fft 横坐标
+                auto xAxisText = get_x_axis_text(n);
+                if (xAxisText) {
+                    auto startPos = ImVec2{pos0.x, pos1.y};
+                    window->DrawList->AddText(startPos, col_base, xAxisText);
+                    window->DrawList->AddRectFilled(startPos, pos1 + ImVec2{0, 2}, col_hovered);//GetColorU32(ImVec4(1, 1, 1, 1)));
+                }
+            }
 
             t0 = t1;
             tp0 = tp1;

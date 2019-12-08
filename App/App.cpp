@@ -224,12 +224,45 @@ void App::drawWave() {
 
         SameLine();
 
-        const auto& fftNumber = fftNum_;
+        const auto& Fn = fftNum_;
         char overlay_text[128];
-        sprintf(overlay_text, "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", fftNumber, fftFre_, fftAmp_, fftPha_);
-        PlotFFT("FFT", [](float* data, size_t i) {
-            return data[i];
-        }, pointsFFT_.data(), fftNumber / 2, 0, overlay_text, fftMin_, fftMax_, ImVec2(waveWidth_, waveHeight_));
+        sprintf(overlay_text, "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", Fn, fftFre_, fftAmp_, fftPha_);
+        PlotFFT("FFT"
+                , [&](size_t i) {
+                    return pointsFFT_[i];
+                }
+                , [&](size_t i, bool force) {
+                    if (!force && i != fftK_) return (char*)nullptr;
+
+                    static char v[30];
+                    auto fre = fft_cal_fre(info_.sampleFs, fftNum_, i);
+                    if (fre < 1000) {
+                        snprintf(v, sizeof(v), "Fre=%gHz, Amp=%gmV", fre, fftAmp_);
+                    } else {
+                        snprintf(v, sizeof(v), "fre=%gkHz, amp=%gmV", fre / 1000, fftAmp_);
+                    }
+                    return v;
+                }
+                , [&](size_t i) {
+                    auto showNum = Fn / 2 / 20; // fft只显示了一半要除2 显示20个点
+                    if (showNum != 0 && i % showNum != 0) return (char*)nullptr;
+
+                    static char v[30];
+                    auto fre = fft_cal_fre(info_.sampleFs, fftNum_, i);
+                    if (fre < 1000) {
+                        snprintf(v, sizeof(v), "%.1f", fre);
+                    } else {
+                        snprintf(v, sizeof(v), "%.1fk", fre / 1000);
+                    }
+                    return v;
+                }
+                , Fn / 2
+                , 0
+                , overlay_text
+                , fftMin_
+                , fftMax_
+                , ImVec2(waveWidth_, waveHeight_)
+                );
     }
 }
 
@@ -273,7 +306,7 @@ void App::calFFT() {
     // 计算幅值并找出除直流分量外最大处:k
     float max = 0;
     auto& A = pointsFFT_;
-    std::remove_const<typeof(N)>::type k = 0;
+    auto& k = fftK_;
     if (fftCursor_ == 0) {
         // 初始化为直流分量
         fftCursor_ = (float)fft_cal_amp(s[0], Fn);;

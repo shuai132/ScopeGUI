@@ -57,7 +57,7 @@ private:
     const float itemWidth_ = 1200;
     const float itemWidthScaleMax_ = itemWidth_ * 10;
     float waveWidth_ = 0;
-    float waveHeight_ = 255;
+    float waveHeight_ = 254;
 
     float volMin_ = 0;
     float volMax_ = 0;
@@ -69,6 +69,7 @@ private:
     // FFT Result
     std::vector<fft_complex> fftResult_;
     typeof(SampleInfo::sampleSn) fftNum_ = 0;
+    typeof(fftNum_) fftK_ = 0;
     float fftAmp_ = 0;
     float fftPha_ = 0;
     float fftFre_ = 0;
