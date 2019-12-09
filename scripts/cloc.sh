@@ -2,7 +2,8 @@
 
 cd .. && \
 cloc *.* \
-App/*.* \
+.github \
+App \
 modules/log/*.* \
 modules/PacketProcessor/*.* \
 modules/SmartSerial/*.* \
