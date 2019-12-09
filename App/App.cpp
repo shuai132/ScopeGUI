@@ -182,7 +182,7 @@ void App::drawWave() {
     using namespace ImGui;
     const float vSliderWidth = 14;
 
-    NewLine();
+    Dummy({0, 4});
     Text("Sample Info from MCU: Fs=%u(%gkHz), SampleNum=%u", info_.sampleFs, info_.sampleFs / 1000.f, info_.sampleSn);
 
     // Scale Slider
@@ -213,8 +213,34 @@ void App::drawWave() {
                 snprintf(text, sizeof(text), "Vol/mV: ave=%dmV", (int)ave / sn);
             }
         }
-        PlotLines("AMP", pointsAmp_.data(), info_.sampleSn, 0, text, volMin_, volMax_, ImVec2(waveWidth_, waveHeight_));
+        PlotVol("AMP"
+                , [&](size_t i) {
+                    return pointsAmp_[i];
+                }
+                , [&](size_t i) {
+                    static char v[56];
+                    snprintf(v, sizeof(v), "%zu %gmV", i, pointsAmp_[i]);
+                    return v;
+                }
+                , [&](size_t i) {
+                    size_t xCount = info_.sampleSn;
+                    size_t showCountMax = 20;
+                    if (xCount > showCountMax && i % (xCount / showCountMax)) return (char*)nullptr;
+
+                    static char v[56];
+                    snprintf(v, sizeof(v), "%zu", i);
+                    return v;
+                }
+                , info_.sampleSn
+                , 0
+                , text
+                , volMin_
+                , volMax_
+                , ImVec2(waveWidth_, waveHeight_)
+                );
     }
+
+    Dummy({0, 1});
 
     // FFT plot
     {
@@ -261,7 +287,7 @@ void App::drawWave() {
                 , [&](size_t i, bool force) {
                     if (!force && i != fftK_) return (char*)nullptr;
 
-                    static char v[30];
+                    static char v[56];
                     auto fre = fft_cal_fre(info_.sampleFs, fftNum_, i);
                     if (fre < 1000) {
                         snprintf(v, sizeof(v), "Fre=%gHz, Amp=%gmV", fre, fftAmp_);
@@ -271,13 +297,13 @@ void App::drawWave() {
                     return v;
                 }
                 , [&](size_t i) {
-                    if (i == 0) return (char*)nullptr;
+                    if (i == 0) return (char*)"0";
 
                     if (not std::binary_search(shouldShowAxisIdx.cbegin(), shouldShowAxisIdx.cend(), i)) {
                         return (char*)nullptr;
                     }
 
-                    static char v[30];
+                    static char v[56];
                     auto fre = fft_cal_fre(info_.sampleFs, fftNum_, i);
                     if (fre < 1000) {
                         snprintf(v, sizeof(v), "%.1f", fre);

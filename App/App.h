@@ -57,7 +57,7 @@ private:
     const float itemWidth_ = 1200;
     const float itemWidthScaleMax_ = itemWidth_ * 10;
     float waveWidth_ = 0;
-    float waveHeight_ = 254;
+    float waveHeight_ = 256;
 
     float volMin_ = 0;
     float volMax_ = 0;
