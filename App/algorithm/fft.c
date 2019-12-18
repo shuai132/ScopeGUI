@@ -1,5 +1,6 @@
 #include "fft.h"
 #include <math.h>
+#include <assert.h>
 
 #define pi  M_PI
 
@@ -14,31 +15,23 @@ static fft_complex cp_cexp(fft_complex a)
 /**
  * 对s做N点FFT，结果仍保存在s中
  */
-void fft_cal_fft(fft_complex* x, int n)
+void fft_cal_fft(fft_complex* x, uint32_t N)
 {
     fft_complex t, z, ce;
-    float pisign;
-    int mr, m, l, j, i, nn;
+    double pisign;
+    uint32_t mr, m, l, i;
     int isign = -1;
-    for (i = 1; i <= 16; i++)                       /*n must be power of 2  */
-    {
-        nn = (int)pow(2, i);
-        if (n == nn)
-            break;
-    }
-    if (i > 16)
-    {
-        //printf(" N is not a power of 2 ! \n");
-        return;
-    }
+
+    assert(!(N & (N - 1)));                         // n must be power of 2
+
     z.real = 0.0;
-    pisign = (float)(4 * isign * atan(1.0));        /*pisign的值为+180度或-180度*/
+    pisign = 4 * isign * atan(1.0);                 // pisign的值为+180度或-180度
 
     mr = 0;
-    for (m = 1; m < n; m++)
+    for (m = 1; m < N; m++)
     {
-        l = n;
-        while (mr + l >= n)
+        l = N;
+        while (mr + l >= N)
             l = l / 2;
         mr = mr % l + l;
         if (mr <= m)
@@ -52,22 +45,11 @@ void fft_cal_fft(fft_complex* x, int n)
     }
 
     l = 1;
-    while (1)
+    while (l < N)
     {
-        if (l >= n)
-        {
-            if (isign == -1)                        /*isign=-1 For Forward Transform*/
-                return;
-            for (j = 0; j < n; j++)                 /* Inverse Transform */
-            {
-                x[j].real = x[j].real / n;
-                x[j].imag = x[j].imag / n;
-            }
-            return;
-        }
         for (m = 0; m < l; m++)                     /*完成当前级所有蝶形运算 */
         {
-            for (i = m; i < n; i = i + 2 * l)       /*完成当前级相同W因子的所有蝶形运算*/
+            for (i = m; i < N; i = i + 2 * l)       /*完成当前级相同W因子的所有蝶形运算*/
             {
                 z.imag = m * pisign / l;
                 ce = cp_cexp(z);
@@ -86,9 +68,9 @@ void fft_cal_fft(fft_complex* x, int n)
 /**
  * 由FFT结果计算幅值
  */
-double fft_cal_amp(fft_complex x, int n)
+double fft_cal_amp(fft_complex x, uint32_t N)
 {
-    return (sqrt(x.real * x.real + x.imag * x.imag) * 2 / n);
+    return (sqrt(x.real * x.real + x.imag * x.imag) * 2 / N);
 }
 
 /**
@@ -106,7 +88,7 @@ double fft_cal_pha(fft_complex x)
 /**
  * 计算FFT结果中对应点的频率
  */
-double fft_cal_fre(int Fs, int N, int n)
+double fft_cal_fre(uint32_t Fs, uint32_t N, uint32_t n)
 {
     double fre = ((double)Fs / N) * n;
     return fre;
