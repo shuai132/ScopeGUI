@@ -74,9 +74,9 @@ void UIFFT::onDraw() {
                 static char v[56];
                 auto fre = fft_cal_fre(info.sampleFs, fftNum, i);
                 if (fre < 1000) {
-                    snprintf(v, sizeof(v), "Fre=%gHz, Amp=%gmV", fre, fftAmp);
+                    snprintf(v, sizeof(v), "Fre=%gHz, Amp=%gmV, n=%zu", fre, fftAmp, i);
                 } else {
-                    snprintf(v, sizeof(v), "Fre=%gkHz, Amp=%gmV", fre / 1000, fftAmp);
+                    snprintf(v, sizeof(v), "Fre=%gkHz, Amp=%gmV, n=%zu", fre / 1000, fftAmp, i);
                 }
                 return v;
             }
