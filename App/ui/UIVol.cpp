@@ -36,17 +36,19 @@ void UIVol::onDraw() {
 
     SameLine();
 
-    char text[30]{}; {
+    char text[30]{};
+    {
         auto sn = info.sampleSn;
+        double ave = 0;
         if (sn != 0){
-            double ave = 0;
             FOR(i, sn) {
                 ave += pointsAmp[i];
             }
-            snprintf(text, sizeof(text), "Vol/mV: ave=%dmV", (int)ave / sn);
+            ave = ave / sn;
         }
+        snprintf(text, sizeof(text), "Vol/mV: ave=%dmV", (int)ave);
     }
-    PlotVol("AMP"
+    PlotVol(""
             , [&](size_t i) {
                 return pointsAmp[i];
             }

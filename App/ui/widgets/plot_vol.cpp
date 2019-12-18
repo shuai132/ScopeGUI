@@ -141,7 +141,7 @@ void PlotVol(const char* label
             {   // 横坐标
                 auto xAxisText = get_x_axis_text(n);
                 if (xAxisText) {
-                    window->DrawList->AddText(posX + ImVec2{1, 0}, col_base, get_x_axis_text(n));
+                    window->DrawList->AddText(posX + ImVec2{1, 0}, col_base, xAxisText);
                     window->DrawList->AddRectFilled(ImVec2{posX.x - 1, posX.y}, ImVec2{posX.x + 1, posX.y + 4}, col_hovered);
                 }
             }

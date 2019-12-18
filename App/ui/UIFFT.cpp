@@ -64,7 +64,7 @@ void UIFFT::onDraw() {
         }
     }
 
-    PlotFFT("FFT"
+    PlotFFT(""
             , [&](size_t i) {
                 return pointsFFT[i];
             }
