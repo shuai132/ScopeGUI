@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   macOS:
-    runs-on: macOS-10.14
+    runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v1
         with:
