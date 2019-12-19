@@ -44,5 +44,5 @@ private:
     bool recvEnable_ = true;
 
     AppContent* appContent_;
-    std::atomic_bool processing {false};
+    std::atomic_bool processing_ {false};
 };

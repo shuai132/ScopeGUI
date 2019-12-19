@@ -18,7 +18,6 @@ public:
     SampleInfo info = {};
 
     // Wave
-    // 容器仅确保capacity size恒为零
     std::vector<float> pointsAmp;
     std::vector<float> pointsFFT;
 

@@ -9,7 +9,7 @@ UICmd::UICmd(Comm* comm)
 }
 
 void UICmd::onDraw() {
-    auto& info = comm_->msgAnalyzer.info;
+    auto info = comm_->msgAnalyzer.info;
 
     {
         float widthSampleNum = 125;

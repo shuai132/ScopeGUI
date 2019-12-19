@@ -6,7 +6,7 @@ void MsgAnalyzer::onMessage(const Message& message) {
     info = message.sampleInfo;
     //LOGD("got message: sampleFs:%d, sampleSn:%d", info.sampleFs, info.sampleSn);
 
-    pointsAmp.reserve(info.sampleSn);
+    pointsAmp.resize(info.sampleSn);
 
     volMin = info.volMinmV;
     volMax = info.volMaxmV;
@@ -21,8 +21,8 @@ void MsgAnalyzer::onMessage(const Message& message) {
 void MsgAnalyzer::calcFFT() {
     // FFT算法需要N为2的整次幂
     fftNum = utils::nextPow2(info.sampleSn);
-    pointsFFT.reserve(fftNum / 2);
-    fftResult.reserve(fftNum);
+    pointsFFT.resize(fftNum / 2);
+    fftResult.resize(fftNum);
 
     const auto& Fs = info.sampleFs;    // 采样频率
     const auto& Fn = info.sampleSn;    // 采样点数
@@ -42,6 +42,7 @@ void MsgAnalyzer::calcFFT() {
     float max = 0;
     auto& A = pointsFFT;
     auto& k = fftK;
+    k = 0;
     if (fftCursor == 0) {
         // 初始化为直流分量
         fftCursor = (float)fft_cal_amp(s[0], Fn);;
