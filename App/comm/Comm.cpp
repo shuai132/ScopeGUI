@@ -1,5 +1,4 @@
 #include "Comm.h"
-#include "App.h"
 #include "log.h"
 
 Comm::Comm(AppContent* content) : packetProcessor_(false), appContent_(content) {
@@ -33,6 +32,13 @@ void Comm::sendCmd(Cmd cmd) {
 }
 
 void Comm::sendCmd(Cmd::Type type, Cmd::Data data) {
+    static const auto minInterval = std::chrono::milliseconds(100);
+    static auto lastTime = std::chrono::steady_clock::now();
+    auto now = std::chrono::steady_clock::now();
+
+    if (now - lastTime < minInterval) return;
+    lastTime = now;
+
     Cmd cmd;
     cmd.type = type;
     cmd.data = data;
