@@ -5,8 +5,9 @@
 #include "ui/UICmd.h"
 #include "ui/UIVol.h"
 #include "ui/UIFFT.h"
+#include "AppContent.h"
 
-class App : UI {
+class App : UI, AppContent {
 public:
     App();
 

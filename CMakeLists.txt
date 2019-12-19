@@ -42,9 +42,17 @@ target_compile_definitions(packetprocessor PRIVATE LOG_NDEBUG)
 # log
 include_directories(modules/log)
 
+# asio
+add_definitions(-DASIO_STANDALONE)
+include_directories(third_party/asio/asio/include)
+
 # common
 set(CMAKE_CXX_STANDARD 11)
 add_compile_options(-Wall)
+
+if(MINGW)
+    link_libraries(ws2_32)
+endif()
 
 if(CMAKE_BUILD_TYPE MATCHES "Release")
     if(MINGW)

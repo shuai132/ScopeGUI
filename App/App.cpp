@@ -5,7 +5,7 @@
 using namespace ImGui;
 
 App::App()
-    : comm_(std::unique_ptr<Comm>(new Comm()))
+    : comm_(std::unique_ptr<Comm>(new Comm(this)))
     , uiComm_(comm_.get())
     , uiCmd_(comm_.get())
     , uiVol_(comm_.get())
@@ -15,6 +15,9 @@ App::App()
 }
 
 void App::onDraw() {
+    uiContext_.poll();
+    uiContext_.restart();
+
     ImGui::Begin("MainWindow", nullptr, windowFlags_);
     ImGui::SetWindowPos({0, 0});
     ImGui::SetWindowSize({MainWindowWidth, MainWindowHeight});

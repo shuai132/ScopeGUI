@@ -4,12 +4,13 @@
 #include "SmartSerial.h"
 #include "PacketProcessor.h"
 #include "algorithm/MsgAnalyzer.h"
+#include "AppContent.h"
 
 using namespace scope;
 
 class Comm : noncopyable {
 public:
-    Comm();
+    explicit Comm(AppContent* content);
 
 public:
     void setPortName(const std::string& name);
@@ -41,4 +42,7 @@ private:
     const char* PORT_PID = "5740";
 
     bool recvEnable_ = true;
+
+    AppContent* appContent_;
+    std::atomic_bool processing {false};
 };

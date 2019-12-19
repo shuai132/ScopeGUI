@@ -1,7 +1,8 @@
 #include "Comm.h"
+#include "App.h"
 #include "log.h"
 
-Comm::Comm() : packetProcessor_(false) {
+Comm::Comm(AppContent* content) : packetProcessor_(false), appContent_(content) {
     initSerial();
 }
 
@@ -55,7 +56,16 @@ void Comm::initSerial() {
     });
 
     packetProcessor_.setOnPacketHandle([this](const uint8_t* data, size_t size) {
-        onMessage(*(Message*)data);
+        if (processing) return;
+        processing = true;
+        auto dataHolder = std::shared_ptr<uint8_t>(new uint8_t[size], [this](const uint8_t* p) {
+            delete[] p;
+            processing = false;
+        });
+        memcpy(dataHolder.get(), data, size);
+        appContent_->getUIContext().dispatch([this, dataHolder]{
+            onMessage(*(Message*)dataHolder.get());
+        });
     });
 }
 

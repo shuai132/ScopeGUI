@@ -13,3 +13,6 @@
 [submodule "third_party/glfw"]
 	path = third_party/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "third_party/asio"]
+	path = third_party/asio
+	url = https://gitee.com/shuai132/asio.git
