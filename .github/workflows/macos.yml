@@ -1,0 +1,34 @@
+name: macOS
+
+on: [push]
+
+jobs:
+  macOS:
+    runs-on: macOS-latest
+    env:
+      targetName: ScopeGUI
+
+    steps:
+      - uses: actions/checkout@v1
+        with:
+          fetch-depth: 1
+
+      - name: Submodules
+        run: git submodule update --init --recursive
+
+      - name: CMake Build
+        run: |
+          mkdir build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release ..
+          make ${{ env.targetName }}
+          zip -r ${{ env.targetName }}.zip ${{ env.targetName }}.app
+
+      - name: Make Release
+        if: startsWith(github.event.ref, 'refs/tags/')
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/${{ env.targetName }}.zip
+          asset_name: ${{ env.targetName }}_${{ runner.os }}.zip
+          tag: ${{ github.ref }}
+          overwrite: true
