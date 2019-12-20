@@ -10,8 +10,18 @@ UIComm::UIComm(Comm* comm)
 void UIComm::onDraw() {
     SetNextItemWidth(500);
 
-    static std::vector<serial::PortInfo> ports;
-    ports = serial::list_ports();
+    static std::vector<serial::PortInfo> ports = serial::list_ports();
+    {
+        // save a bit of cpu
+        static const auto minInterval = std::chrono::seconds(1);
+        static auto lastTime = std::chrono::steady_clock::now();
+        auto now = std::chrono::steady_clock::now();
+        if (now - lastTime >= minInterval) {
+            lastTime = now;
+            ports = serial::list_ports();
+        }
+    }
+
     const int MAX_NAME_LEN = 128;
     char items[ports.size()][MAX_NAME_LEN];
 
