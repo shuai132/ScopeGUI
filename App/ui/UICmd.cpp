@@ -13,10 +13,10 @@ void UICmd::onDraw() {
     auto info = comm_->msgAnalyzer.info;
 
     {
-        float widthSampleNum = 125;
-
+        const float widthSampleSn = 125;
+        const float widthSnFsSlider = 500;
         /** Sample Sn **/
-        SetNextItemWidth(widthSampleNum);
+        SetNextItemWidth(widthSampleSn);
         int sampleSn = info.sampleSn;
         if (InputInt("Sample Sn", &sampleSn)) {
             utils::setLimit<int>(sampleSn, 0, info.sampleSnMax);
@@ -24,30 +24,61 @@ void UICmd::onDraw() {
             comm_->sendCmd(Cmd::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
         }
         SameLine();
-        SetNextItemWidth(500);
-        if (SliderInt("##Sample Sn Slider", &sampleSn, 0, info.sampleSnMax, "Fn = %d")) {
+        SetNextItemWidth(widthSnFsSlider);
+        if (SliderInt("##Sample Sn Slider", &sampleSn, 0, info.sampleSnMax, "Sn = %d")) {
             info.sampleSn = sampleSn;
             comm_->sendCmd(Cmd::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
         }
+
+        const int widthShortcutBtn = 50;
+        // Sn shortcut
+        const auto shortcutSn = [&](SampleSn_t sn) {
+            SameLine();
+            info.sampleSn = sn;
+            if(Button(std::to_string(sn).c_str(), {widthShortcutBtn, 0})) {
+                info.sampleSn = sn;
+                comm_->sendCmd(Cmd::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
+            }
+        };
+        shortcutSn(128);
+        shortcutSn(512);
+        shortcutSn(1000);
+        shortcutSn(1024);
+        shortcutSn(2048);
         SameLine();
-        Text("= %gk", (float)sampleSn / 1000);
+        Text("Now: %gk", (float)sampleSn / 1000);
 
         /** Sample Fs **/
         int sampleFs = info.sampleFs;
-        SetNextItemWidth(widthSampleNum);
+        SetNextItemWidth(widthSampleSn);
         if (InputInt("Sample Fs", &sampleFs)) {
             utils::setLimit<int>(sampleFs, info.fsMinSps, info.fsMaxSps);
             info.sampleFs = sampleFs;
             comm_->sendCmd(Cmd::SET_SAMPLE_FS, {.sampleFs = info.sampleFs});
         }
         SameLine();
-        SetNextItemWidth(500);
+        SetNextItemWidth(widthSnFsSlider);
         if (SliderInt("##Sample Fs Slider", &sampleFs, info.fsMinSps, info.fsMaxSps, "Fs = %d")) {
             info.sampleFs = sampleFs;
             comm_->sendCmd(Cmd::SET_SAMPLE_FS, {.sampleFs = info.sampleFs});
         }
+        // Fs shortcut
+        const auto shortcutFskHz = [&](SampleFs_t fskHz) {
+            SameLine();
+            std::stringstream label;
+            label << fskHz << "kHz";
+            if(Button(label.str().c_str(), {widthShortcutBtn, 0})) {
+                info.sampleFs = fskHz * 1000;
+                comm_->sendCmd(Cmd::SET_SAMPLE_FS, {.sampleFs = info.sampleFs});
+            }
+        };
+        shortcutFskHz(1);
+        shortcutFskHz(10);
+        shortcutFskHz(30);
+        shortcutFskHz(50);
+        shortcutFskHz(70);
         SameLine();
-        Text("= %gk", (float)sampleFs / 1000);
+        Text("Now: %gk", (float)sampleFs / 1000);
     }
 
     // trigger mode

@@ -28,7 +28,7 @@ void UIFFT::onDraw() {
     const auto& fftFre = analyzer.fftFre;
 
     // FFT plot
-    if (VSliderFloat("##FFT Amp Level", ImVec2(UI_WAVE_L_SLIDER_WIDTH, UI_WaveHeight), &fftCursor, 0, fftMax)) {
+    if (VSliderFloat("##FFT Amp Level", ImVec2(UI_WAVE_L_SLIDER_WIDTH, UI_WaveHeight), &fftCursor, 0, fftMax, "")) {
         analyzer.calcFFT();
     }
 
