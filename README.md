@@ -1,6 +1,8 @@
 # ScopeGUI
 
-[![Build Status](https://github.com/shuai132/ScopeGUI/workflows/build/badge.svg)](https://github.com/shuai132/ScopeGUI/actions?workflow=build)
+[![Build Status](https://github.com/shuai132/ScopeGUI/workflows/Windows/badge.svg)](https://github.com/shuai132/ScopeGUI/actions?workflow=Windows)
+[![Build Status](https://github.com/shuai132/ScopeGUI/workflows/macOS/badge.svg)](https://github.com/shuai132/ScopeGUI/actions?workflow=macOS)
+[![Build Status](https://github.com/shuai132/ScopeGUI/workflows/Ubuntu/badge.svg)](https://github.com/shuai132/ScopeGUI/actions?workflow=Ubuntu)
 
 Oscilloscope GUI for [ScopeMCU](https://github.com/shuai132/ScopeMCU)
 
