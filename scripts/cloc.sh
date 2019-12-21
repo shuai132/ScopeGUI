@@ -5,6 +5,6 @@ cloc *.* \
 .github \
 App \
 modules/log/*.* \
-modules/PacketProcessor/*.* \
+modules/ScopeCore/*.* \
+modules/ScopeCore/modules/PacketProcessor/*.* \
 modules/SmartSerial/*.* \
-scripts \

@@ -1,7 +1,8 @@
 #include "Comm.h"
 #include "log.h"
 
-Comm::Comm(AppContent* content) : packetProcessor_(false), appContent_(content) {
+Comm::Comm(AppContent* content)
+    : scopeGui_(this), appContent_(content) {
     initSerial();
 }
 
@@ -18,31 +19,15 @@ bool Comm::isOpen() {
 }
 
 void Comm::setRecvEnable(bool enable) {
-    recvEnable_ = enable;
+    recvEnabled_ = enable;
 }
 
-void Comm::sendCmd(Cmd cmd) {
+void Comm::sendCmd(Cmd::Type type, Cmd::Data data) {
     if (not smartSerial_.isOpen()) {
         LOGD("not open, cmd ignored!");
         return;
     }
-    packetProcessor_.packForeach((uint8_t*)&cmd, sizeof(cmd), [this](uint8_t* data, size_t size) {
-        smartSerial_.write(data, size);
-    });
-}
-
-void Comm::sendCmd(Cmd::Type type, Cmd::Data data) {
-    static const auto minInterval = std::chrono::milliseconds(100);
-    static auto lastTime = std::chrono::steady_clock::now();
-    auto now = std::chrono::steady_clock::now();
-
-    if (now - lastTime < minInterval) return;
-    lastTime = now;
-
-    Cmd cmd;
-    cmd.type = type;
-    cmd.data = data;
-    sendCmd(cmd);
+    scopeGui_.sendCmd(type, data);
 }
 
 void Comm::initSerial() {
@@ -57,22 +42,22 @@ void Comm::initSerial() {
     smartSerial_.setVidPid(PORT_VID, PORT_PID);
 
     smartSerial_.setOnReadHandle([this](const uint8_t* data, size_t size) {
-        if (not recvEnable_) return;
-        packetProcessor_.feed(data, size);
-    });
-
-    packetProcessor_.setOnPacketHandle([this](const uint8_t* data, size_t size) {
-        if (processing_) return;
-        processing_ = true;
-        auto dataHolder = std::shared_ptr<uint8_t>(new uint8_t[size], std::default_delete<uint8_t[]>());
-        memcpy(dataHolder.get(), data, size);
-        appContent_->getUIContext().dispatch([this, dataHolder]{
-            onMessage(*(Message*)dataHolder.get());
-            processing_ = false;
-        });
+        if (not recvEnabled_) return;
+        scopeGui_.onMcuData(data, size);
     });
 }
 
-void Comm::onMessage(const Message& message) {
-    msgAnalyzer.onMessage(message);
+void Comm::sendToMcu(const uint8_t* data, size_t size) {
+    smartSerial_.write(data, size);
+}
+
+void Comm::onMessage(Message* message, size_t size) {
+    if (processing_) return;
+    processing_ = true;
+    auto dataHolder = std::shared_ptr<uint8_t>(new uint8_t[size], std::default_delete<uint8_t[]>());
+    memcpy(dataHolder.get(), message, size);
+    appContent_->getUIContext().dispatch([this, dataHolder]{
+        msgAnalyzer.onMessage((Message*)dataHolder.get());
+        processing_ = false;
+    });
 }

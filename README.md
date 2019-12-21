@@ -10,7 +10,7 @@ Powered by [Dear ImGui](https://github.com/ocornut/imgui) and [GLFW](https://git
 
 [截图说明见wiki](https://github.com/shuai132/ScopeGUI/wiki)
 
-[二进制releases](https://github.com/shuai132/ScopeGUI/releases)
+[最新版Releases](https://github.com/shuai132/ScopeGUI/releases)
 
 ## Features
 

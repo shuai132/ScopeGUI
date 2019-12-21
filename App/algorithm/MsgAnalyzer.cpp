@@ -2,8 +2,8 @@
 #include "utils/Utils.h"
 #include "log.h"
 
-void MsgAnalyzer::onMessage(const Message& message) {
-    info = message.sampleInfo;
+void MsgAnalyzer::onMessage(Message* message) {
+    info = message->sampleInfo;
     //LOGD("got message: sampleFs:%d, sampleSn:%d", info.sampleFs, info.sampleSn);
 
     pointsAmp.resize(info.sampleSn);
@@ -12,7 +12,7 @@ void MsgAnalyzer::onMessage(const Message& message) {
     volMax = info.volMaxmV;
 
     FOR(i, info.sampleSn) {
-        pointsAmp[i] = (float) message.sampleCh1[i];
+        pointsAmp[i] = (float) message->sampleCh1[i];
     }
 
     calcFFT();

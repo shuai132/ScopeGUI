@@ -34,11 +34,6 @@ link_libraries(imgui)
 add_subdirectory(modules/SmartSerial)
 link_libraries(smartserial)
 
-# PacketProcessor
-add_subdirectory(modules/PacketProcessor)
-link_libraries(packetprocessor)
-target_compile_definitions(packetprocessor PRIVATE LOG_NDEBUG)
-
 # log
 include_directories(modules/log)
 
@@ -61,7 +56,11 @@ if(CMAKE_BUILD_TYPE MATCHES "Release")
     set(BUILD_AS_APP WIN32 MACOSX_BUNDLE)
 endif()
 
-# app
+# ScopeCore
+add_subdirectory(modules/ScopeCore)
+link_libraries(ScopeCoreGUI)
+
+# App
 add_subdirectory(App)
 link_libraries(App)
 

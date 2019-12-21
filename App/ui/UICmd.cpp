@@ -3,6 +3,7 @@
 #include "utils/Utils.h"
 
 using namespace ImGui;
+using namespace scope;
 
 UICmd::UICmd(Comm* comm)
         : comm_(comm) {
@@ -14,27 +15,27 @@ void UICmd::onDraw() {
     {
         float widthSampleNum = 125;
 
-        /** Sample Number **/
+        /** Sample Sn **/
         SetNextItemWidth(widthSampleNum);
-        int sampleNum = info.sampleSn;
-        if (InputInt("Sample Number", &sampleNum)) {
-            utils::setLimit<int>(sampleNum, 0, info.sampleNumMax);
-            info.sampleSn = sampleNum;
-            comm_->sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info.sampleSn});
+        int sampleSn = info.sampleSn;
+        if (InputInt("Sample Sn", &sampleSn)) {
+            utils::setLimit<int>(sampleSn, 0, info.sampleSnMax);
+            info.sampleSn = sampleSn;
+            comm_->sendCmd(Cmd::Type::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
         }
         SameLine();
         SetNextItemWidth(500);
-        if (SliderInt("##Sample Num Slider", &sampleNum, 0, info.sampleNumMax, "Fn = %d")) {
-            info.sampleSn = sampleNum;
-            comm_->sendCmd(Cmd::Type::SET_SAMPLE_NUM, {.sampleNum = info.sampleSn});
+        if (SliderInt("##Sample Sn Slider", &sampleSn, 0, info.sampleSnMax, "Fn = %d")) {
+            info.sampleSn = sampleSn;
+            comm_->sendCmd(Cmd::Type::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
         }
         SameLine();
-        Text("= %gk", (float)sampleNum / 1000);
+        Text("= %gk", (float)sampleSn / 1000);
 
         /** Sample Fs **/
         int sampleFs = info.sampleFs;
         SetNextItemWidth(widthSampleNum);
-        if (InputInt("Sample Fs    ", &sampleFs)) {
+        if (InputInt("Sample Fs", &sampleFs)) {
             utils::setLimit<int>(sampleFs, info.fsMinSps, info.fsMaxSps);
             info.sampleFs = sampleFs;
             comm_->sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info.sampleFs});

@@ -2,15 +2,21 @@
 
 #include "base/noncopyable.h"
 #include "SmartSerial.h"
-#include "PacketProcessor.h"
 #include "algorithm/MsgAnalyzer.h"
 #include "AppContent.h"
+#include "ScopeGUI.h"
 
-using namespace scope;
+using scope::Cmd;
+using scope::ScopeGUI;
 
-class Comm : noncopyable {
+class Comm : noncopyable, private ScopeGUI::Comm {
 public:
     explicit Comm(AppContent* content);
+
+private:
+    void sendToMcu(const uint8_t* data, size_t size) override;
+
+    void onMessage(Message* message, size_t size) override;
 
 public:
     void setPortName(const std::string& name);
@@ -21,27 +27,23 @@ public:
 
     void setRecvEnable(bool enable);
 
-    void sendCmd(Cmd cmd);
-
     void sendCmd(Cmd::Type type, Cmd::Data data = {});
 
 private:
     void initSerial();
 
-    void onMessage(const Message& message);
-
 public:
     MsgAnalyzer msgAnalyzer;
 
 private:
-    PacketProcessor packetProcessor_;
+    ScopeGUI scopeGui_;
 
     // Serial Port
     SmartSerial smartSerial_;
     const char* PORT_VID = "1234";
     const char* PORT_PID = "5740";
 
-    bool recvEnable_ = true;
+    std::atomic_bool recvEnabled_ {true};
 
     AppContent* appContent_;
     std::atomic_bool processing_ {false};

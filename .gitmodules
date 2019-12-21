@@ -7,12 +7,12 @@
 [submodule "modules/log"]
 	path = modules/log
 	url = https://github.com/shuai132/LOG.git
-[submodule "modules/PacketProcessor"]
-	path = modules/PacketProcessor
-	url = https://github.com/shuai132/PacketProcessor
 [submodule "third_party/glfw"]
 	path = third_party/glfw
 	url = https://github.com/glfw/glfw.git
 [submodule "third_party/asio"]
 	path = third_party/asio
 	url = https://gitee.com/shuai132/asio.git
+[submodule "modules/ScopeCore"]
+	path = modules/ScopeCore
+	url = https://github.com/shuai132/ScopeCore.git

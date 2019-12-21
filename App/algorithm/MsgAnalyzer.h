@@ -2,14 +2,15 @@
 
 #include <vector>
 #include "base/noncopyable.h"
-#include "comm/Portable.h"
+#include "Portable.h"
 #include "algorithm/fft.h"
 
-using namespace scope;
+using scope::Message;
+using scope::SampleInfo;
 
 class MsgAnalyzer : noncopyable {
 public:
-    void onMessage(const Message& message);
+    void onMessage(Message* message);
 
     void calcFFT();
 
