@@ -21,13 +21,13 @@ void UICmd::onDraw() {
         if (InputInt("Sample Sn", &sampleSn)) {
             utils::setLimit<int>(sampleSn, 0, info.sampleSnMax);
             info.sampleSn = sampleSn;
-            comm_->sendCmd(Cmd::Type::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
+            comm_->sendCmd(Cmd::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
         }
         SameLine();
         SetNextItemWidth(500);
         if (SliderInt("##Sample Sn Slider", &sampleSn, 0, info.sampleSnMax, "Fn = %d")) {
             info.sampleSn = sampleSn;
-            comm_->sendCmd(Cmd::Type::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
+            comm_->sendCmd(Cmd::SET_SAMPLE_SN, {.sampleSn = info.sampleSn});
         }
         SameLine();
         Text("= %gk", (float)sampleSn / 1000);
@@ -38,13 +38,13 @@ void UICmd::onDraw() {
         if (InputInt("Sample Fs", &sampleFs)) {
             utils::setLimit<int>(sampleFs, info.fsMinSps, info.fsMaxSps);
             info.sampleFs = sampleFs;
-            comm_->sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info.sampleFs});
+            comm_->sendCmd(Cmd::SET_SAMPLE_FS, {.sampleFs = info.sampleFs});
         }
         SameLine();
         SetNextItemWidth(500);
         if (SliderInt("##Sample Fs Slider", &sampleFs, info.fsMinSps, info.fsMaxSps, "Fs = %d")) {
             info.sampleFs = sampleFs;
-            comm_->sendCmd(Cmd::Type::SET_SAMPLE_FS, {.sampleFs = info.sampleFs});
+            comm_->sendCmd(Cmd::SET_SAMPLE_FS, {.sampleFs = info.sampleFs});
         }
         SameLine();
         Text("= %gk", (float)sampleFs / 1000);
@@ -57,17 +57,17 @@ void UICmd::onDraw() {
         int triggerMode = static_cast<int>(info.triggerMode);
         if (RadioButton("ALWAYS", &triggerMode, static_cast<int>(TriggerMode::ALWAYS))) {
             info.triggerMode = static_cast<TriggerMode>(triggerMode);
-            comm_->sendCmd(Cmd::Type::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info.triggerMode});
+            comm_->sendCmd(Cmd::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info.triggerMode});
         }
         SameLine();
         if (RadioButton("NORMAL", &triggerMode, static_cast<int>(TriggerMode::NORMAL))) {
             info.triggerMode = static_cast<TriggerMode>(triggerMode);
-            comm_->sendCmd(Cmd::Type::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info.triggerMode});
+            comm_->sendCmd(Cmd::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info.triggerMode});
         }
         SameLine();
         if (RadioButton("SOFTWARE", &triggerMode, static_cast<int>(TriggerMode::SOFTWARE))) {
             info.triggerMode = static_cast<TriggerMode>(triggerMode);
-            comm_->sendCmd(Cmd::Type::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info.triggerMode});
+            comm_->sendCmd(Cmd::SET_TRIGGER_MODE, Cmd::Data{.triggerMode = info.triggerMode});
         }
     }
 
@@ -78,18 +78,18 @@ void UICmd::onDraw() {
         int triggerSlope = static_cast<int>(info.triggerSlope);
         if (RadioButton("Up", &triggerSlope, static_cast<int>(TriggerSlope::UP))) {
             info.triggerSlope = static_cast<TriggerSlope>(triggerSlope);
-            comm_->sendCmd(Cmd::Type::SET_TRIGGER_SLOPE, Cmd::Data{.triggerSlope = info.triggerSlope});
+            comm_->sendCmd(Cmd::SET_TRIGGER_SLOPE, Cmd::Data{.triggerSlope = info.triggerSlope});
         }
         SameLine();
         if (RadioButton("Down", &triggerSlope, static_cast<int>(TriggerSlope::DOWN))) {
             info.triggerSlope = static_cast<TriggerSlope>(triggerSlope);
-            comm_->sendCmd(Cmd::Type::SET_TRIGGER_SLOPE, Cmd::Data{.triggerSlope = info.triggerSlope});
+            comm_->sendCmd(Cmd::SET_TRIGGER_SLOPE, Cmd::Data{.triggerSlope = info.triggerSlope});
         }
 
         {
             SameLine();
             if (Button("Force Trigger")) {
-                comm_->sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
+                comm_->sendCmd(Cmd::SOFTWARE_TRIGGER);
             }
 
             SameLine();

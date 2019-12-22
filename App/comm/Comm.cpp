@@ -33,7 +33,7 @@ void Comm::sendCmd(Cmd::Type type, Cmd::Data data) {
 void Comm::initSerial() {
     smartSerial_.setOnOpenHandle([this](bool isOpen) {
         if (isOpen) {
-            sendCmd(Cmd::Type::SOFTWARE_TRIGGER);
+            sendCmd(Cmd::SOFTWARE_TRIGGER);
         } else {
             smartSerial_.setPortName("");
         }

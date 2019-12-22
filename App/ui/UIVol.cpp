@@ -31,7 +31,7 @@ void UIVol::onDraw() {
     int triggerLevel = info.triggerLevel;
     if (VSliderInt("##Trigger Level", ImVec2(UI_WAVE_L_SLIDER_WIDTH, UI_WaveHeight), &triggerLevel, info.volMinmV, info.volMaxmV)) {
         info.triggerLevel = triggerLevel;
-        comm_->sendCmd(Cmd::Type::SET_TRIGGER_LEVEL, Cmd::Data{.triggerLevel = info.triggerLevel});
+        comm_->sendCmd(Cmd::SET_TRIGGER_LEVEL, Cmd::Data{.triggerLevel = info.triggerLevel});
     }
 
     SameLine();
