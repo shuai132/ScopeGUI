@@ -47,4 +47,7 @@ private:
 
     AppContext* appContext_;
     std::atomic_bool processing_ {false};
+
+    std::chrono::steady_clock::time_point cmdLastTime_;
+    bool cmdRespond_ = true;
 };
