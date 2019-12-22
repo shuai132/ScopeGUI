@@ -22,8 +22,14 @@ jobs:
           mkdir build
           cd build
           cmake -DCMAKE_BUILD_TYPE=Release .. -G "MinGW Makefiles"
-          mingw32-make ScopeGUI
+          mingw32-make ScopeGUI -j2
           Compress-Archive -Path ${{ env.targetName }}.exe ${{ env.targetName }}.zip
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.targetName }}_${{ runner.os }}_${{ github.sha }}
+          path: build
 
       - name: Make Release
         if: startsWith(github.event.ref, 'refs/tags/')

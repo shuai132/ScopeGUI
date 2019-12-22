@@ -20,8 +20,14 @@ jobs:
         run: |
           mkdir build && cd build
           cmake -DCMAKE_BUILD_TYPE=Release ..
-          make ${{ env.targetName }}
+          make ${{ env.targetName }} -j2
           zip -r ${{ env.targetName }}.zip ${{ env.targetName }}.app
+
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ${{ env.targetName }}_${{ runner.os }}_${{ github.sha }}
+          path: build
 
       - name: Make Release
         if: startsWith(github.event.ref, 'refs/tags/')
