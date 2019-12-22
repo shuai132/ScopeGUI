@@ -3,7 +3,7 @@
 #include "base/noncopyable.h"
 #include "SmartSerial.h"
 #include "algorithm/MsgAnalyzer.h"
-#include "AppContent.h"
+#include "AppContext.h"
 #include "ScopeGUI.h"
 
 using scope::Cmd;
@@ -11,7 +11,7 @@ using scope::ScopeGUI;
 
 class Comm : noncopyable, private ScopeGUI::Comm {
 public:
-    explicit Comm(AppContent* content);
+    explicit Comm(AppContext* context);
 
 private:
     void sendToMcu(const uint8_t* data, size_t size) override;
@@ -45,6 +45,6 @@ private:
 
     std::atomic_bool recvEnabled_ {true};
 
-    AppContent* appContent_;
+    AppContext* appContext_;
     std::atomic_bool processing_ {false};
 };

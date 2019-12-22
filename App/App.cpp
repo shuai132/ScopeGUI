@@ -41,6 +41,14 @@ void App::onDraw() {
     ImGui::End();
 }
 
+void App::runOnUiThread(const std::function<void()>& task) {
+    uiContext_.dispatch(task);
+}
+
+void App::post(const std::function<void()>& task) {
+    uiContext_.post(task);
+}
+
 void App::initGUI() {
     windowFlags_ |= ImGuiWindowFlags_NoMove;
     windowFlags_ |= ImGuiWindowFlags_NoResize;

@@ -1,8 +1,8 @@
 #include "Comm.h"
 #include "log.h"
 
-Comm::Comm(AppContent* content)
-    : scopeGui_(this), appContent_(content) {
+Comm::Comm(AppContext* context)
+    : scopeGui_(this), appContext_(context) {
     initSerial();
 }
 
@@ -56,7 +56,7 @@ void Comm::onMessage(Message* message, size_t size) {
     processing_ = true;
     auto dataHolder = std::shared_ptr<uint8_t>(new uint8_t[size], std::default_delete<uint8_t[]>());
     memcpy(dataHolder.get(), message, size);
-    appContent_->getUIContext().dispatch([this, dataHolder]{
+    appContext_->runOnUiThread([this, dataHolder]{
         msgAnalyzer.onMessage((Message*)dataHolder.get());
         processing_ = false;
     });
