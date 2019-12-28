@@ -12,7 +12,7 @@ void MsgAnalyzer::onMessage(Message* message) {
     volMax = info.volMaxmV;
 
     FOR(i, info.sampleSn) {
-        pointsAmp[i] = (float) message->sampleCh1[i];
+        pointsAmp[i] = (float) message->sampleData[i];
     }
 
     calcFFT();
