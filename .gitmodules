@@ -1,6 +1,6 @@
 [submodule "third_party/imgui"]
 	path = third_party/imgui
-	url = https://github.com/shuai132/imgui.git
+	url = https://github.com/ocornut/imgui.git
 [submodule "modules/SmartSerial"]
 	path = modules/SmartSerial
 	url = https://github.com/shuai132/SmartSerial
