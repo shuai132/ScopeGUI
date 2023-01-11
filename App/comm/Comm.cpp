@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "Comm.h"
 #include "log.h"
 
