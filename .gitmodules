@@ -1,18 +1,18 @@
 [submodule "third_party/imgui"]
 	path = third_party/imgui
-	url = https://github.com/ocornut/imgui.git
+	url = git@github.com:ocornut/imgui.git
 [submodule "modules/SmartSerial"]
 	path = modules/SmartSerial
-	url = https://github.com/shuai132/SmartSerial
+	url = git@github.com:shuai132/SmartSerial
 [submodule "modules/log"]
 	path = modules/log
-	url = https://github.com/shuai132/LOG.git
+	url = git@github.com:shuai132/LOG.git
 [submodule "third_party/glfw"]
 	path = third_party/glfw
-	url = https://github.com/glfw/glfw.git
-[submodule "third_party/asio"]
-	path = third_party/asio
-	url = https://gitee.com/shuai132/asio.git
+	url = git@github.com:glfw/glfw.git
 [submodule "modules/ScopeCore"]
 	path = modules/ScopeCore
-	url = https://github.com/shuai132/ScopeCore.git
+	url = git@github.com:shuai132/ScopeCore.git
+[submodule "third_party/asio"]
+	path = third_party/asio
+	url = git@github.com:chriskohlhoff/asio.git

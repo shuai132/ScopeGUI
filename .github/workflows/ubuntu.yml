@@ -14,12 +14,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libsdl2-dev
 
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
         with:
-          fetch-depth: 1
-
-      - name: Submodules
-        run: git submodule update --init --recursive
+          submodules: recursive
 
       - name: CMake Build
         run: |

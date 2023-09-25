@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 
+# common
+set(CMAKE_CXX_STANDARD 14)
+add_compile_options(-Wall)
+
 project(ScopeGUI C CXX)
 
 # OpenGL
@@ -16,18 +20,17 @@ add_subdirectory(third_party/glfw)
 link_libraries(glfw)
 
 # ImGui
-set(IMGUI_DIR third_party/imgui)
+set(IMGUI_DIR ${CMAKE_CURRENT_LIST_DIR}/third_party/imgui)
 set(GL_DIR ${IMGUI_DIR}/examples/libs/gl3w)
 add_library(imgui
-        ${IMGUI_DIR}/examples/imgui_impl_glfw.cpp
-        ${IMGUI_DIR}/examples/imgui_impl_opengl2.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
+        ${IMGUI_DIR}/backends/imgui_impl_opengl2.cpp
         ${IMGUI_DIR}/imgui.cpp
         ${IMGUI_DIR}/imgui_draw.cpp
         ${IMGUI_DIR}/imgui_demo.cpp
-        ${IMGUI_DIR}/imgui_widgets.cpp
-        ${GL_DIR}/GL/gl3w.c)
-target_include_directories(imgui PUBLIC
-        ${IMGUI_DIR} ${GL_DIR} ${IMGUI_DIR}/examples)
+        ${IMGUI_DIR}/imgui_tables.cpp
+        ${IMGUI_DIR}/imgui_widgets.cpp)
+target_include_directories(imgui PUBLIC ${IMGUI_DIR} ${GL_DIR} ${IMGUI_DIR}/backends)
 link_libraries(imgui)
 
 # SmartSerial
@@ -41,20 +44,16 @@ include_directories(modules/log)
 add_definitions(-DASIO_STANDALONE)
 include_directories(third_party/asio/asio/include)
 
-# common
-set(CMAKE_CXX_STANDARD 11)
-add_compile_options(-Wall)
-
-if(MINGW)
+if (MINGW)
     link_libraries(ws2_32)
-endif()
+endif ()
 
-if(CMAKE_BUILD_TYPE MATCHES "Release")
-    if(MINGW)
+if (CMAKE_BUILD_TYPE MATCHES "Release")
+    if (MINGW)
         set(CMAKE_EXE_LINKER_FLAGS "-static -s")
-    endif()
+    endif ()
     set(BUILD_AS_APP WIN32 MACOSX_BUNDLE)
-endif()
+endif ()
 
 # ScopeCore
 add_subdirectory(modules/ScopeCore)

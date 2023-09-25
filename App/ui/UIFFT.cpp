@@ -36,7 +36,7 @@ void UIFFT::onDraw() {
 
     const auto& Fn = fftNum;
     char overlay_text[128];
-    sprintf(overlay_text, "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", Fn, fftFre, fftAmp, fftPha);
+    snprintf(overlay_text, sizeof(overlay_text), "FFT Analysis(N=%d): fre=%.3fHz, amp=%.3fmV, pha=%.3f°", Fn, fftFre, fftAmp, fftPha);
 
     std::vector<size_t> shouldShowAxisIdx;
     {
