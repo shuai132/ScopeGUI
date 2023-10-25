@@ -4,20 +4,24 @@
 #include "log.h"
 
 Comm::Comm(AppContext* context)
-    : scopeGui_(this), appContext_(context) {
+    : scopeGui_(this), appContext_(context) {}
+
+void Comm::init() {
+    serialPort_ = std::make_unique<asio_net::serial_port>(*(asio::io_context*)appContext_->nativeHandle());
     initSerial();
 }
 
 void Comm::setPortName(const std::string& name) {
-    smartSerial_.setPortName(name);
+    serialPort_->close();
+    serialPort_->open(name);
 }
 
 std::string Comm::getPortName() {
-    return smartSerial_.getPortName();
+    return serialPort_->config().device;
 }
 
 bool Comm::isOpen() {
-    return smartSerial_.isOpen();
+    return serialPort_->is_open();
 }
 
 void Comm::setRecvEnable(bool enable) {
@@ -33,7 +37,7 @@ void Comm::sendCmd(Cmd::Type type, Cmd::Data data) {
     cmdLastTime_ = now;
     cmdRespond_ = false;
 
-    if (not smartSerial_.isOpen()) {
+    if (not serialPort_->is_open()) {
         LOGD("not open, cmd ignored!");
         return;
     }
@@ -41,22 +45,21 @@ void Comm::sendCmd(Cmd::Type type, Cmd::Data data) {
 }
 
 void Comm::initSerial() {
-    smartSerial_.setOnOpenHandle([this](bool isOpen) {
-        if (isOpen) {
-            sendCmd(Cmd::SOFTWARE_TRIGGER);
-        }
+    serialPort_->set_reconnect(1000);
+    serialPort_->on_open = ([this]() {
+      sendCmd(Cmd::SOFTWARE_TRIGGER);
     });
+    serialPort_->open();
+//    serialPort_->setVidPid(PORT_VID, PORT_PID);
 
-    smartSerial_.setVidPid(PORT_VID, PORT_PID);
-
-    smartSerial_.setOnReadHandle([this](const uint8_t* data, size_t size) {
+    serialPort_->on_data = [this](const std::string& data) {
         if (not recvEnabled_) return;
-        scopeGui_.onMcuData(data, size);
-    });
+        scopeGui_.onMcuData((uint8_t*)data.data(), data.size());
+    };
 }
 
 void Comm::sendToMcu(const uint8_t* data, size_t size) {
-    smartSerial_.write(data, size);
+    serialPort_->send(std::string((char*)data, size));
 }
 
 void Comm::onMessage(Message* message, size_t size) {

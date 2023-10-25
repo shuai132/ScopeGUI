@@ -16,3 +16,6 @@
 [submodule "third_party/asio"]
 	path = third_party/asio
 	url = git@github.com:chriskohlhoff/asio.git
+[submodule "modules/asio_net"]
+	path = modules/asio_net
+	url = git@github.com:shuai132/asio_net

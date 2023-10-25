@@ -37,6 +37,10 @@ link_libraries(imgui)
 add_subdirectory(modules/SmartSerial)
 link_libraries(smartserial)
 
+# asio_net
+add_subdirectory(modules/asio_net)
+link_libraries(asio_net)
+
 # log
 include_directories(modules/log)
 

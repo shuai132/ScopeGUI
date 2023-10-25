@@ -19,6 +19,8 @@ public:
 
     void post(const std::function<void()>& task) override;
 
+    void *nativeHandle() override;
+
 private:
     void initGUI();
 
@@ -28,10 +30,10 @@ public:
     static const char* MainWindowTitle;
 
 private:
-    std::unique_ptr<Comm> comm_;
     asio::io_context uiContext_;
+    std::unique_ptr<Comm> comm_;
 
-    uint32_t windowFlags_ = 0;
+    int windowFlags_ = 0;
 
     UIComm uiComm_;
     UICmd uiCmd_;

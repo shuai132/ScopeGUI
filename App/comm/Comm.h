@@ -1,7 +1,7 @@
 #pragma once
 
 #include "base/noncopyable.h"
-#include "SmartSerial.h"
+#include "asio_net/serial_port.hpp"
 #include "algorithm/MsgAnalyzer.h"
 #include "AppContext.h"
 #include "ScopeGUI.h"
@@ -19,6 +19,8 @@ private:
     void onMessage(Message* message, size_t size) override;
 
 public:
+    void init();
+
     void setPortName(const std::string& name);
 
     std::string getPortName();
@@ -39,9 +41,9 @@ private:
     ScopeGUI scopeGui_;
 
     // Serial Port
-    SmartSerial smartSerial_;
-    const char* PORT_VID = "1234";
-    const char* PORT_PID = "5740";
+    std::unique_ptr<asio_net::serial_port> serialPort_;
+//    const char* PORT_VID = "1234";
+//    const char* PORT_PID = "5740";
 
     std::atomic_bool recvEnabled_ {true};
 
